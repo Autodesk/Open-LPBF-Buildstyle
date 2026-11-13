@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project Version="0.0.1" Plugin="" Type="Post-processor (extended CLI)" ProjectUUID="5b0c7e2a-3f41-4c8e-9d17-6a2e8f3b9c45">
+  <Globals>
+    <ProjectName>OSS_MPBF_01</ProjectName>
+  </Globals>
+  <Filters>
+    <Filter Name="main">
+      <File Path="main/main.js"/>
+      <File Path="main/vector_types.js"/>
+      <File Path="main/param_groups.js"/>
+      <File Path="main/settings.js"/>
+      <File Path="main/exposure_layer.js"/>
+      <File Path="main/postprocess.js"/>
+      <File Path="main/color_table.js"/>
+      <File Path="main/layer_usage.js"/>
+      <File Path="main/export_main.js"/>
+    </Filter>
+    <Filter Name="lib">
+      <File Path="lib/util/log.js"/>
+      <File Path="lib/util/math_utils.js"/>
+      <File Path="lib/util/random.js"/>
+      <File Path="lib/util/layer_skip.js"/>
+      <File Path="lib/util/attribute_names.js"/>
+      <File Path="lib/util/version_check.js"/>
+      <File Path="lib/geometry/gas_flow.js"/>
+      <File Path="lib/geometry/island_ops.js"/>
+      <File Path="lib/params/atu_param_group_class.js"/>
+      <File Path="lib/params/param_factories.js"/>
+      <File Path="lib/params/param_readers.js"/>
+      <File Path="lib/exposure/exposure_attributes.js"/>
+      <File Path="lib/exposure/contours.js"/>
+      <File Path="lib/exposure/narrow_paths.js"/>
+      <File Path="lib/exposure/skin_split.js"/>
+      <File Path="lib/exposure/hull_core.js"/>
+      <File Path="lib/exposure/pattern_rotation.js"/>
+      <File Path="lib/exposure/hatch_options.js"/>
+      <File Path="lib/exposure/hatch_patterns.js"/>
+      <File Path="lib/exposure/stripe_block_sort.js"/>
+      <File Path="lib/exposure/supports.js"/>
+      <File Path="lib/sorting/start_point_history.js"/>
+      <File Path="lib/sorting/exposure_sorter.js"/>
+      <File Path="lib/power/power_model.js"/>
+      <File Path="lib/power/power_optimization.js"/>
+      <File Path="lib/time/exposure_time.js"/>
+      <File Path="lib/time/scanner_delays.js"/>
+      <File Path="lib/export/zip_package.js"/>
+      <File Path="lib/export/xml_text.js"/>
+      <File Path="lib/export/parameter_json.js"/>
+      <File Path="lib/export/build_job_image.js"/>
+      <File Path="lib/export/toolpath_reader.js"/>
+      <File Path="lib/export/lsr_writer.js"/>
+      <File Path="lib/export/cli_plus_writer.js"/>
+      <File Path="lib/export/tp3mf_writer.js"/>
+      <File Path="lib/multi_laser/laser_assignment.js"/>
+      <File Path="lib/multi_laser/laser_assignment_math.js"/>
+      <File Path="lib/multi_laser/laser_bsid.js"/>
+      <File Path="lib/multi_laser/scanner_array.js"/>
+    </Filter>
+    <Filter Name="localization">
+      <File Path="localization/localizer.js"/>
+      <File Path="localization/lang_en.json"/>
+      <File Path="localization/lang_de.json"/>
+      <File Path="localization/lang_es.json"/>
+      <File Path="localization/lang_fr.json"/>
+      <File Path="localization/lang_it.json"/>
+      <File Path="localization/lang_ja.json"/>
+      <File Path="localization/lang_ko.json"/>
+      <File Path="localization/lang_pl.json"/>
+      <File Path="localization/lang_pt-BR.json"/>
+      <File Path="localization/lang_tr.json"/>
+      <File Path="localization/lang_zh-Hans.json"/>
+      <File Path="localization/lang_zh-Hant.json"/>
+    </Filter>
+  </Filters>
+</Project>
