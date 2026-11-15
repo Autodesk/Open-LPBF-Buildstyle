@@ -1,0 +1,85 @@
+{
+ "duration": 97.97,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Hatch plate, 40 x 28 mm"
+  },
+  {
+   "t": 5.02,
+   "caption": "Layer 50: volume hatch, zoom into the middle of the plate"
+  },
+  {
+   "t": 11.18,
+   "caption": "Layer 50: lines at 133°"
+  },
+  {
+   "t": 14.98,
+   "caption": "Layer 51: +67° → 20°"
+  },
+  {
+   "t": 18.95,
+   "caption": "Layer 52: 87°"
+  },
+  {
+   "t": 23.05,
+   "caption": "Layer 53: 154°. 20° is almost parallel to the gas flow (along X)"
+  },
+  {
+   "t": 25.65,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 30.94,
+   "caption": "Hatching › Volume / hull hatching › Rotation"
+  },
+  {
+   "t": 38.17,
+   "caption": "Rotation: start angle 0°, +67° per layer"
+  },
+  {
+   "t": 41.69,
+   "caption": "Limitation window: switch from off to on"
+  },
+  {
+   "t": 48.29,
+   "caption": "Show its parameters"
+  },
+  {
+   "t": 53.9,
+   "caption": "Window direction 0° relative to the gas flow: lines across the flow"
+  },
+  {
+   "t": 58.25,
+   "caption": "Window angle: 120° → 30°, i.e. 75° ... 105°"
+  },
+  {
+   "t": 65.06,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 66.26,
+   "caption": "Rebuilt. Layer 50: 97.2°"
+  },
+  {
+   "t": 70.19,
+   "caption": "Layer 51: 78.3°"
+  },
+  {
+   "t": 74.19,
+   "caption": "Layer 52: 89.5°"
+  },
+  {
+   "t": 78.19,
+   "caption": "Layer 53: 100.7°. Still a new direction every layer, all inside the window"
+  },
+  {
+   "t": 82.29,
+   "caption": "Optimized sorting: every layer is exposed against the gas flow, from +X to -X"
+  },
+  {
+   "t": 92.42,
+   "caption": "Toolpaths in 3D up to layer 53"
+  }
+ ]
+}

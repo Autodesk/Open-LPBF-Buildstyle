@@ -1,0 +1,53 @@
+{
+ "duration": 49.92,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Hatch plate: rounded corners and a round notch"
+  },
+  {
+   "t": 5.05,
+   "caption": "Default volume hatch: meander lines (green)"
+  },
+  {
+   "t": 11.07,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 15.01,
+   "caption": "Hatching › Volume: set the pattern to Chessboard"
+  },
+  {
+   "t": 21.89,
+   "caption": "Field size sets the edge length of one chess field"
+  },
+  {
+   "t": 25.57,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 26.77,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 27.82,
+   "caption": "Chessboard: neighbouring fields are turned by 90°"
+  },
+  {
+   "t": 32.59,
+   "caption": "Next layer: the whole pattern turns by 67°"
+  },
+  {
+   "t": 35.59,
+   "caption": "Stripes (overlap set to −0.3 mm here so the seams show)"
+  },
+  {
+   "t": 38.99,
+   "caption": "Hexagon: three groups of cells at 0°, 60° and 120°"
+  },
+  {
+   "t": 42.39,
+   "caption": "Offset: rings that follow the outline"
+  }
+ ]
+}

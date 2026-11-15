@@ -1,0 +1,61 @@
+{
+ "duration": 65.08,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Border block: chamfer, round corner and a 0.1 mm fin"
+  },
+  {
+   "t": 5.03,
+   "caption": "Layer at z 1 mm: borders (red) around the volume hatch (green)"
+  },
+  {
+   "t": 7.54,
+   "caption": "Corner: the first border runs 0.06 mm inside the outline"
+  },
+  {
+   "t": 13.44,
+   "caption": "The fin is only 0.1 mm wide: no room for a compensated border"
+  },
+  {
+   "t": 20.0,
+   "caption": "Instead it gets a blocked path: one line along its middle"
+  },
+  {
+   "t": 25.51,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 29.41,
+   "caption": "First border › Beam compensation: type 0.2 mm"
+  },
+  {
+   "t": 35.84,
+   "caption": "0.2 mm is exaggerated to make the shift visible"
+  },
+  {
+   "t": 37.94,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 39.14,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 40.03,
+   "caption": "After: the border is 0.2 mm inside, the hatch moves with it"
+  },
+  {
+   "t": 47.46,
+   "caption": "Fin: the blocked path now starts further inside the part"
+  },
+  {
+   "t": 54.01,
+   "caption": "Its end also moves back from the tip (0.05 → 0.22 mm)"
+  },
+  {
+   "t": 59.54,
+   "caption": "Toolpaths in 3D up to the current layer"
+  }
+ ]
+}

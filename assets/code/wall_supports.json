@@ -1,0 +1,310 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "top",
+    "z": 2.01
+   },
+   "notes": [
+    "Wall supports are on by default (<code>FLAGS.OPT_ON</code>), and the group has only one child: a Layer skip. Power, speed and laser come from the Scanning group, like for every vector type."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 235,
+     "end": 239,
+     "lines": [
+      "// 8. Wall supports (open polylines)",
+      "// On by default. Thin support walls exposed as single lines; only a",
+      "// layer skip can be set (laser settings: grp_scanning).",
+      "var support_wall_group = FACTORY.create_top_level_group('grp_support_wall', text, FLAGS.OPT_ON);",
+      "FACTORY.create_layer_skip_group(support_wall_group, CHILD_ID.LAYER_SKIP, text, {}, FLAGS.DEF);"
+     ],
+     "marks": [
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "mode": "skip",
+    "z": 2.01,
+    "nth": 2
+   },
+   "notes": [
+    "<code>part.support_wall</code> holds the switch and the layer skip settings, <code>{every_nth, offset}</code>, read by the shared <code>read_layer_skip</code>."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 269,
+     "end": 272,
+     "lines": [
+      "    support_wall: {",
+      "      enabled: G.support_wall_group.isGrpEnabled(),",
+      "      layer_skip: READ.read_layer_skip(G.support_wall_group.getChildGrp(CHILD_ID.LAYER_SKIP))",
+      "    },"
+     ],
+     "marks": [
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "open",
+   "title": "Find the support lines of the layer",
+   "scene": {
+    "mode": "top",
+    "z": 2.01
+   },
+   "notes": [
+    "Wall supports have no area: in a sliced layer they are open polylines. <code>process_open_polylines</code> walks over them and checks the model subtype: part paths go out as they are, support lines become wall support vectors (BSID 700).",
+    "This is why the demo shows no border and no hatch on the walls: they never reach the island code."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 559,
+     "end": 580,
+     "lines": [
+      "function process_open_polylines(a_ctx, a_result)",
+      "{",
+      "  let l_wall = a_ctx.part.support_wall;",
+      "  // Tip: an iterator points to one polyline at a time;",
+      "  // isValid() is false after the last one, next() moves on.",
+      "  let l_it = a_ctx.model_data.getFirstLayerPolyline(a_ctx.layer_nr, POLY_IT.nLayerOpenPolylines);",
+      "  while (l_it.isValid())",
+      "  {",
+      "    let l_subtype = l_it.getModelSubtype();",
+      "    // Part paths are exposed as they are (no layer skip, no options).",
+      "    if (l_subtype === MODEL.nSubtypePart)",
+      "    {",
+      "      let l_hatch = new HATCH.bsHatch();",
+      "      l_it.polylineToHatch(l_hatch);",
+      "      add_hatch(a_ctx, a_result, l_hatch, BSID.part_open_path, 0, undefined);",
+      "    }",
+      "    else if ((l_subtype === MODEL.nSubtypeSupport) && l_wall.enabled &&",
+      "             LAYER_SKIP.is_active(a_ctx.layer_index, l_wall.layer_skip))",
+      "    {",
+      "      // The support lines are connected and sorted for short jumps.",
+      "      let l_support = SUPPORTS.make_wall_support_hatch(l_it);",
+      "      add_hatch(a_ctx, a_result, l_support, BSID.support_wall, 0, undefined);"
+     ],
+     "marks": [
+      5,
+      16,
+      20,
+      21
+     ]
+    }
+   ]
+  },
+  {
+   "id": "skip",
+   "title": "Expose every n-th layer",
+   "scene": {
+    "mode": "skip",
+    "z": 2.01,
+    "nth": 2
+   },
+   "notes": [
+    "<code>LAYER_SKIP.is_active</code> keeps a layer if (layer index − offset) is a multiple of every_nth. With every_nth = 2 the demo exposes z = 2.01 mm and skips z = 2.04 mm, and ATU reports no BSID 700 on the skipped layer.",
+    "The exposed layer then has to melt the skipped powder layer too: the support grows in 60 µm steps instead of 30 µm. That saves time but needs enough energy per exposure."
+   ],
+   "ranges": [
+    {
+     "file": "lib/util/layer_skip.js",
+     "start": 58,
+     "end": 74,
+     "lines": [
+      "exports.is_active = function(a_layer_index, a_cfg)",
+      "{",
+      "  // No settings, or every_nth <= 1 (also undefined or NaN): expose every layer.",
+      "  if (!a_cfg) return true;",
+      "  if (!(a_cfg.every_nth > 1)) return true;",
+      "  // A negative index should not happen. Exposing is the safe choice.",
+      "  if (a_layer_index < 0) return true;",
+      "  let l_offset = a_cfg.offset;",
+      "  if (typeof l_offset !== 'number') l_offset = 0;",
+      "  // Tip: % is the remainder of a division, e.g. 5 % 2 = 1.",
+      "  // A remainder of 0 means the layer is one of the \"every n-th\" layers.",
+      "  // In JavaScript the remainder has the sign of the dividend",
+      "  // ((0 - 1) % 5 = -1), so it is shifted into [0, every_nth) first.",
+      "  let l_rem = (a_layer_index - l_offset) % a_cfg.every_nth;",
+      "  if (l_rem < 0) l_rem += a_cfg.every_nth;",
+      "  return l_rem === 0;",
+      "};"
+     ],
+     "marks": [
+      4,
+      13,
+      14,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cleanup",
+   "title": "Connect, merge and sort the lines",
+   "scene": {
+    "mode": "cleanup",
+    "stage": 3
+   },
+   "notes": [
+    "<code>make_wall_support_hatch</code> tidies each polyline in three builtin calls: connect pieces whose ends are closer than 1 µm, merge collinear lines across gaps of up to 4 mm (flipping lines that point the other way), and sort the blocks for short jumps, starting near (0, 0).",
+    "Fewer blocks mean fewer laser on/off switches. The drawing is a sketch with five pieces; in the demo every wall already arrives as one straight line."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/supports.js",
+     "start": 55,
+     "end": 98,
+     "lines": [
+      "exports.make_wall_support_hatch = function(a_poly_it)",
+      "{",
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  a_poly_it.polylineToHatch(r_hatch);",
+      "  if (r_hatch.isEmpty()) return r_hatch;",
+      "",
+      "  // Connect polylines to longer polylines and reduce the number of points.",
+      "  // All distances in mm: end points closer than 0.001 mm (1 micrometer)",
+      "  // are treated as the same point. Self connect: a polyline whose start",
+      "  // and end meet is closed. Point reduction removes points that deviate",
+      "  // less than 0.001 mm from a straight line; the negative edge length",
+      "  // limit (-1) means that no edges are removed because of their length.",
+      "  r_hatch.connectHatchBlocks({",
+      "    bEnableSelfConnect: true,",
+      "    fSelfConnectMaxDist: 0.001,",
+      "    fMaxConnectDist: 0.001,",
+      "    fPointReductionDeviationTol: 0.001,",
+      "    fPointReductionEdgeLengthLimit: -1.0",
+      "  });",
+      "",
+      "  // Reduce the number of direction changes.",
+      "  // Segments within 0.02 mm of one straight line count as collinear and",
+      "  // go into the same block, also across gaps of up to 4 mm (the laser",
+      "  // skips the gap). bFlipLines: segments that point the other way are",
+      "  // flipped, so the whole line is exposed in one direction.",
+      "  r_hatch.mergeCollinearLines({",
+      "    fCollinearTol: 0.02,",
+      "    fMaxSkipDist: 4.0,",
+      "    bFlipLines: true",
+      "  });",
+      "",
+      "  // Reduce the jump length (blocks may be flipped).",
+      "  // The first block is the one near the platform origin (0, 0); then the",
+      "  // next block is chosen to keep the jumps short.",
+      "  r_hatch.sortHatchBlocksForMinJumpLength({",
+      "    startPos: new VEC2.Vec2(0.0, 0.0),",
+      "    bFlip: true",
+      "  });",
+      "",
+      "  // The model subtype marks the vectors as support (not part), e.g. for",
+      "  // the preview, the sorting and the export.",
+      "  r_hatch.setModelSubtype(MODEL.nSubtypeSupport);",
+      "  return r_hatch;",
+      "};"
+     ],
+     "marks": [
+      12,
+      25,
+      34,
+      41
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Laser settings and order",
+   "scene": {
+    "mode": "top",
+    "z": 2.01
+   },
+   "notes": [
+    "Wall supports (BSID 700) run at 180 W and 1000 mm/s. Scan order 10 makes them the very first vectors of a layer, before solid supports (20) and the part."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 117,
+     "end": 117,
+     "lines": [
+      "  make_entry('support_wall',        700, 'none',             false, 180, 1000, 10, [128, 128, 128]),"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "skip",
+   "title": "Wall supports on every second layer by default",
+   "why": "Supports are removed after the build; exposing them on every second layer saves time.",
+   "result": "New profiles expose the walls on every second layer, as in the video. Set <b>Expose every n-th layer</b> to 2 in the Layer skip view.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 239,
+     "before": "FACTORY.create_layer_skip_group(support_wall_group, CHILD_ID.LAYER_SKIP, text, {}, FLAGS.DEF);",
+     "after": "FACTORY.create_layer_skip_group(support_wall_group, CHILD_ID.LAYER_SKIP, text, { every_nth_layer: 2 }, FLAGS.DEF);"
+    }
+   ]
+  },
+  {
+   "id": "gap",
+   "title": "Do not bridge gaps in a wall",
+   "why": "Each separate wall piece should be its own block, for example to inspect the sliced data.",
+   "result": "Collinear lines are still merged where they touch, but pieces with a gap stay separate blocks: the Clean-up view would end with three blocks instead of one.",
+   "atu": [
+    "compile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/exposure/supports.js",
+     "line": 82,
+     "before": "    fMaxSkipDist: 4.0,",
+     "after": "    fMaxSkipDist: 0.0,"
+    }
+   ]
+  },
+  {
+   "id": "power",
+   "title": "More power for the walls",
+   "why": "With layer skip the exposure melts two powder layers at once and may need more energy.",
+   "result": "Wall support default 220 W. For one profile, change Scanning › Wall support › power in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 117,
+     "before": "  make_entry('support_wall',        700, 'none',             false, 180, 1000, 10, [128, 128, 128]),",
+     "after": "  make_entry('support_wall',        700, 'none',             false, 220, 1000, 10, [128, 128, 128]),"
+    }
+   ]
+  }
+ ]
+}

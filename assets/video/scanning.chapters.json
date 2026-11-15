@@ -1,0 +1,61 @@
+{
+ "duration": 57.09,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Hatch plate: 40 x 28 mm, 3 mm high, 100 layers"
+  },
+  {
+   "t": 5.03,
+   "caption": "Exposure Preview with the Build Style Log below"
+  },
+  {
+   "t": 7.53,
+   "caption": "Build the exposures"
+  },
+  {
+   "t": 8.5,
+   "caption": "Estimated exposure time: 0:14:54"
+  },
+  {
+   "t": 13.0,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 18.35,
+   "caption": "Scanning: one group per vector type"
+  },
+  {
+   "t": 29.39,
+   "caption": "Volume hatching: laser, power 280 W, speed 1200 mm/s, focus"
+  },
+  {
+   "t": 34.44,
+   "caption": "Scan speed: type 1600 mm/s"
+  },
+  {
+   "t": 40.85,
+   "caption": "Only the volume hatch changes; borders keep their settings"
+  },
+  {
+   "t": 42.95,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 44.15,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 45.08,
+   "caption": "Same toolpaths: speed does not change the geometry"
+  },
+  {
+   "t": 46.58,
+   "caption": "New estimate: 0:11:18, about a quarter less"
+  },
+  {
+   "t": 51.58,
+   "caption": "Toolpaths in 3D up to the current layer"
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "duration": 40.49,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Export: Execute once more"
+  },
+  {
+   "t": 3.5,
+   "caption": "Tick Export Data and keep a filter, here LSR"
+  },
+  {
+   "t": 13.36,
+   "caption": "Select Export Target…: file name of the package"
+  },
+  {
+   "t": 25.58,
+   "caption": "OK: build and write the package"
+  },
+  {
+   "t": 34.49,
+   "caption": "One ZIP: toolpath, parameters, build job image"
+  }
+ ]
+}

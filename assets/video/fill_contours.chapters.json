@@ -1,0 +1,61 @@
+{
+ "duration": 68.18,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Contour plate: chamfer, round notch and a 1 mm wide tab"
+  },
+  {
+   "t": 5.0,
+   "caption": "Layer at z 1 mm: first border (red) and volume hatch (green)"
+  },
+  {
+   "t": 7.52,
+   "caption": "Around the notch the hatch lines end at the border"
+  },
+  {
+   "t": 13.42,
+   "caption": "The 1 mm tab is hatched like the rest of the plate"
+  },
+  {
+   "t": 20.97,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 25.29,
+   "caption": "Fill contours: switch from off to on"
+  },
+  {
+   "t": 32.45,
+   "caption": "Number of fill contours: type 5"
+  },
+  {
+   "t": 42.43,
+   "caption": "The first ring is 0.1 mm inside the border, then every 0.1 mm"
+  },
+  {
+   "t": 44.54,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 45.74,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 46.64,
+   "caption": "After: five orange fill contours inside the border"
+  },
+  {
+   "t": 49.17,
+   "caption": "They follow the notch; the hatch starts 0.6 mm inside"
+  },
+  {
+   "t": 55.07,
+   "caption": "Tab: the rings meet in the middle, no hatch is left"
+  },
+  {
+   "t": 62.67,
+   "caption": "Toolpaths in 3D up to the current layer"
+  }
+ ]
+}

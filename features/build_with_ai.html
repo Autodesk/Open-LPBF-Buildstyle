@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build with AI · Open LPBF Buildstyle for Autodesk Fusion</title>
+  <link rel="stylesheet" href="../assets/css/site.css?v=20261115f">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="../index.html">Open LPBF Buildstyle<span>for Autodesk Fusion</span></a>
+    <nav>
+      <a href="../index.html">Overview</a>
+      <a href="../tutorials.html">Tutorials</a>
+      <a href="../partners.html">Partners</a>
+      <a href="getting_started.html">Getting started</a>
+      <a href="build_with_ai.html" class="current">Build with AI</a>
+    </nav>
+  </header>
+
+  <section class="feature-head">
+    <div class="crumb">Start here</div>
+    <h1>Create your own toolpaths with your favourite AI tools</h1>
+    <p class="lead">The buildstyle is plain, open JavaScript, written to be read. That makes it a good match for AI
+      assistants such as Cursor or Claude Code: they can explain how a feature works, change a default, add a
+      parameter or a whole new hatch pattern. You stay in charge of the result: review the change, compile it in
+      Advanced Toolpath Utility (ATU), build a few layers and look at them.</p>
+  </section>
+
+  <main class="stack">
+    <article class="card">
+      <h2>An AI session with the buildstyle</h2>
+      <div class="body">
+        <div class="placeholder video-placeholder">
+          <b>Video coming soon</b>
+          <span>A short recorded session: a prompt in the AI tool, the change in the code, and the new toolpaths in
+            ATU.</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card guide">
+      <h2>Set up</h2>
+      <div class="body">
+        <h3 id="get"><span class="n">1</span>Get the buildstyle</h3>
+        <p>Clone the repository and create a branch for your changes, so you can always go back:</p>
+        <figure class="code" data-copy><figcaption><span class="file">Terminal</span></figcaption><pre>git clone https://github.com/Autodesk/Open-LPBF-Buildstyle.git
+cd Open-LPBF-Buildstyle
+git checkout -b my-change</pre></figure>
+
+        <h3 id="open"><span class="n">2</span>Open it in your AI tool</h3>
+        <p><b>Cursor.</b> <b>File › Open Folder…</b> and choose the <code>Open-LPBF-Buildstyle</code> folder. Ask in
+          the chat (Agent mode), and the assistant reads and edits the files of the folder.</p>
+        <p><b>Claude Code.</b> Start it in the folder:</p>
+        <figure class="code" data-copy><figcaption><span class="file">Terminal</span></figcaption><pre>cd Open-LPBF-Buildstyle
+claude</pre></figure>
+        <p>A good first prompt lets the assistant find its way around:</p>
+        <blockquote class="prompt">Read AGENTS.md and main/main.js and give me a short overview of how this buildstyle
+          creates the vectors of a layer.</blockquote>
+        <p>The header of <code>main/main.js</code> has a glossary of the LPBF terms and a map of all folders, so the
+          answer is usually good right away.</p>
+
+        <h3 id="check"><span class="n">3</span>Check every change in ATU</h3>
+        <p>The assistant changes the code; ATU runs it. After each change:</p>
+        <ol class="atu-steps"><li>Compile</li><li>new profile, if a default changed</li><li>Execute a few layers</li><li>look at the Exposure Preview</li></ol>
+        <p>Give the assistant what ATU tells you: copy the compile errors or the lines of the <b>Build Style Log</b>
+          into the chat, or paste a screenshot of the Exposure Preview. The <a href="getting_started.html">getting
+          started</a> page shows each of these steps in ATU.</p>
+        <p class="note">Review every change before you use the toolpaths: the assistant can be wrong, and a toolpath
+          that compiles can still be wrong. Work on a branch, and keep the <code>default</code> profile as it is.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>What the AI can do</h2>
+      <div class="body">
+        <p>Everything that is code. Where it happens, and something to ask:</p>
+        <table class="params">
+          <thead><tr><th>Task</th><th>Where in the code</th><th>Ask for example</th></tr></thead>
+          <tbody>
+            <tr><td>Explain a feature</td><td><code>main/exposure_layer.js</code>, <code>lib/exposure/</code></td>
+              <td>"How are downskin areas found, and which parameters change them?"</td></tr>
+            <tr><td>Change a default</td><td><code>main/param_groups.js</code>, <code>main/vector_types.js</code></td>
+              <td>"Make Chessboard the default volume hatch pattern."</td></tr>
+            <tr><td>Add a parameter</td><td><code>main/param_groups.js</code>, <code>main/settings.js</code>,
+              <code>localization/lang_en.json</code></td><td>"Add a hatch start offset to the volume hatch."</td></tr>
+            <tr><td>New hatch pattern</td><td><code>main/param_groups.js</code>, <code>lib/params/</code>,
+              <code>lib/exposure/hatch_patterns.js</code></td><td>"Add a pattern with concentric rings."</td></tr>
+            <tr><td>New export format</td><td><code>main/export_main.js</code>, <code>lib/export/</code></td>
+              <td>"Add a filter that writes one CSV file per layer."</td></tr>
+            <tr><td>Fix an error</td><td>the message in the Build Style Log</td>
+              <td>"ATU says: Invalid parameters: … What is wrong?"</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Group, parameter and vector type ids are stored in every profile. Ask the assistant to add
+          new ids rather than rename existing ones, otherwise existing profiles lose their values.</p>
+      </div>
+    </article>
+  </main>
+
+  <section class="wide" id="recipes">
+    <h2 class="wide-title">Prompt recipes</h2>
+    <p class="wide-lead">Prompts that work well with the buildstyle: what to ask, what you do in ATU afterwards, and
+      what you get.</p>
+    <div class="recipes">
+      <section class="recipe">
+        <h3>Understand a feature</h3>
+        <p class="why">Before you change something, find out how it works today.</p>
+        <blockquote class="prompt">Explain how the downskin is calculated: which layers are compared, which
+          parameters are used, and in which files. Point me to the lines.</blockquote>
+        <p class="result">An explanation with file and line references. The <a href="downskin.html">downskin</a>
+          page has the same walk through the code for comparison.</p>
+      </section>
+      <section class="recipe">
+        <h3>Change a default</h3>
+        <p class="why">New profiles should start with a chessboard hatch instead of meander.</p>
+        <blockquote class="prompt">Make Chessboard the default volume hatch pattern. Change only the default, nothing
+          else, and show me the diff.</blockquote>
+        <ol class="atu-steps"><li>Compile</li><li>duplicate default</li><li>Execute</li><li>check the hatch</li></ol>
+        <p class="result">A one-line change in <code>main/param_groups.js</code>. Existing profiles keep their
+          pattern; the new copy shows <i>Chessboard</i>.</p>
+      </section>
+      <section class="recipe">
+        <h3>Add a parameter</h3>
+        <p class="why">A setting that does not exist yet, from the dialog to the laser.</p>
+        <blockquote class="prompt">Add a parameter "hatch start offset" (mm, default 0) to the volume hatch group
+          that shifts the hatch lines. Add the English and German texts and a check of the value range.</blockquote>
+        <ol class="atu-steps"><li>Compile</li><li>new profile</li><li>Execute with 0 and 0.05 mm</li><li>compare the layers</li></ol>
+        <p class="result">Edits in <code>param_groups.js</code>, <code>settings.js</code>,
+          <code>exposure_layer.js</code> and the language files, and a new row in the profile dialog.</p>
+      </section>
+      <section class="recipe">
+        <h3>Fix an error</h3>
+        <p class="why">ATU stops the build with a message you do not understand.</p>
+        <blockquote class="prompt">ATU stops with this message in the Build Style Log: [paste the lines]. Find the
+          cause in the code and tell me whether the settings or the code are wrong.</blockquote>
+        <ol class="atu-steps"><li>copy the log lines</li><li>apply the fix</li><li>Compile and Execute again</li></ol>
+        <p class="result">The reason, for example two settings that do not fit together, and the change that fixes
+          it.</p>
+      </section>
+      <section class="recipe">
+        <h3>Find out why something is missing</h3>
+        <p class="why">The overhang of a part shows no downskin, and you do not know which setting is to blame.</p>
+        <blockquote class="prompt">My overhang has no downskin hatch (blue) in layer 120: [paste a screenshot of the
+          Exposure Preview and the downskin settings]. Which condition in the code is not met?</blockquote>
+        <ol class="atu-steps"><li>screenshot of the layer</li><li>change the setting</li><li>Execute again</li></ol>
+        <p class="result">The condition and the setting behind it, for example the group switched off or the surface
+          angle too small.</p>
+      </section>
+      <section class="recipe">
+        <h3>A new export format</h3>
+        <p class="why">Your machine or analysis tool needs its own file format.</p>
+        <blockquote class="prompt">Add an export filter that writes one CSV file per layer into a ZIP, with x1, y1,
+          x2, y2, BSID and power of every vector. Reuse the toolpath reader of the existing exporters.</blockquote>
+        <ol class="atu-steps"><li>Compile</li><li>Execute with Export Data</li><li>open the ZIP</li></ol>
+        <p class="result">A new filter in the Execute dialog. <a href="export_formats.html">Export formats</a> shows
+          how the existing packages are built.</p>
+      </section>
+    </div>
+  </section>
+
+  <section class="wide" id="agents">
+    <h2 class="wide-title">Give your AI the context</h2>
+    <p class="wide-lead">An assistant works better when it knows the rules of the project. The buildstyle repository
+      has an <a href="https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/main/AGENTS.md"><code>AGENTS.md</code></a>
+      file that AI tools such as Cursor, Claude Code, Codex and Copilot read automatically (<code>CLAUDE.md</code>
+      points Claude Code to it).</p>
+    <ul>
+      <li><b>Project overview and folder layout:</b> what a build style is, what lives in <code>main/</code> and
+        <code>lib/</code>, and which file to open in ATU.</li>
+      <li><b>Binding rules in <code>.agents/rules/</code>:</b> code style, module headers, error handling,
+        multi-threaded exposure, the ATU script environment, localization in all 12 languages, the project file and
+        stable ids, and the checks to run after a change.</li>
+    </ul>
+  </section>
+
+  <footer>Open LPBF Buildstyle for Autodesk Fusion documentation</footer>
+
+  <script type="module" src="../assets/js/copy.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+ "duration": 63.47,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Cylinder: Ø 24 mm, 6 mm high"
+  },
+  {
+   "t": 5.03,
+   "caption": "Before: one volume hatch everywhere (green)"
+  },
+  {
+   "t": 8.03,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 11.94,
+   "caption": "Switch on “Hull and core”"
+  },
+  {
+   "t": 17.61,
+   "caption": "Hull thickness: type 2 mm"
+  },
+  {
+   "t": 26.45,
+   "caption": "Core every n-th layer stays 1 for now"
+  },
+  {
+   "t": 32.16,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 33.36,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 34.75,
+   "caption": "After: a 2 mm hull (light green) around the core (dark green)"
+  },
+  {
+   "t": 38.05,
+   "caption": "Edge: border, hull hatch, then the coarser core hatch"
+  },
+  {
+   "t": 44.19,
+   "caption": "Core every 2nd layer: z 3.00 mm has core…"
+  },
+  {
+   "t": 49.48,
+   "caption": "…z 3.03 mm has hull only"
+  },
+  {
+   "t": 50.98,
+   "caption": "The core is exposed on every second layer"
+  },
+  {
+   "t": 57.94,
+   "caption": "Toolpaths in 3D up to the current layer"
+  }
+ ]
+}

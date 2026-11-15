@@ -1,0 +1,57 @@
+{
+ "duration": 59.31,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Step block: three steps, 2, 4 and 6 mm high"
+  },
+  {
+   "t": 5.01,
+   "caption": "Last layer of the lowest step: everything is volume hatch (green)"
+  },
+  {
+   "t": 9.01,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 13.33,
+   "caption": "Upskin (one layer): switch from off to on"
+  },
+  {
+   "t": 20.69,
+   "caption": "Minimum width and overlap: keep 0.1 mm each"
+  },
+  {
+   "t": 29.95,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 31.15,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 32.06,
+   "caption": "Same layer: the top of the low step gets upskin hatch (yellow)"
+  },
+  {
+   "t": 35.6,
+   "caption": "Where the next step continues, the volume hatch stays"
+  },
+  {
+   "t": 42.76,
+   "caption": "One layer higher: only the steps above remain, no upskin"
+  },
+  {
+   "t": 46.76,
+   "caption": "Last layer of the middle step: its top is upskin"
+  },
+  {
+   "t": 50.76,
+   "caption": "Top layer of the part: the whole area is upskin"
+  },
+  {
+   "t": 53.76,
+   "caption": "Toolpaths in 3D up to the middle step"
+  }
+ ]
+}

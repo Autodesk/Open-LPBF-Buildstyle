@@ -1,0 +1,452 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "table",
+   "title": "One table for all vector types",
+   "scene": {
+    "mode": "types"
+   },
+   "notes": [
+    "Every vector type is one line of <code>VECTOR_TYPES</code>: key, BSID, default power and speed, scan order and preview colour. The table drives the parameter tree, the custom table, the sorting and the preview, so a new vector type needs only one new line here.",
+    "The bars on the left are the line energy P / v of these defaults."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 103,
+     "end": 119,
+     "lines": [
+      "exports.VECTOR_TYPES = Object.freeze([",
+      "  //          key                    bsid family               ds     P[W] v[mm/s] order color",
+      "  make_entry('border_first',        100, 'border_first',     false, 150,  600, 80, [220,  50,  80]),",
+      "  make_entry('border_first_ds',     101, 'border_first',     true,  100,  900, 81, [240, 120,  60]),",
+      "  make_entry('blocked_path',        110, 'none',             false, 150,  600, 85, [200,   0, 200]),",
+      "  make_entry('border_following',    200, 'border_following', false, 180,  800, 70, [220,  20,  40]),",
+      "  make_entry('border_following_ds', 201, 'border_following', true,  100,  900, 71, [240, 150,  90]),",
+      "  make_entry('fill_contour',        300, 'fill_contour',     false, 200, 1000, 60, [255, 140,   0]),",
+      "  make_entry('fill_contour_ds',     301, 'fill_contour',     true,  110, 1000, 61, [255, 190, 100]),",
+      "  make_entry('hatch_volume',        500, 'none',             false, 280, 1200, 40, [ 25, 250,  45]),",
+      "  make_entry('hatch_downskin',      501, 'none',             true,  120, 1000, 30, [  0, 120, 255]),",
+      "  make_entry('hatch_core',          510, 'none',             false, 350, 1300, 45, [  0, 170,  70]),",
+      "  make_entry('hatch_upskin',        520, 'none',             false, 220,  900, 50, [255, 230,   0]),",
+      "  make_entry('part_open_path',      600, 'none',             false, 150,  600, 90, [150,   0,   0]),",
+      "  make_entry('support_wall',        700, 'none',             false, 180, 1000, 10, [128, 128, 128]),",
+      "  make_entry('support_solid',       710, 'none',             false, 200, 1200, 20, [ 90,  90,  90])",
+      "]);"
+     ],
+     "marks": [
+      2,
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "declare",
+   "title": "One parameter group per vector type",
+   "scene": {
+    "mode": "types"
+   },
+   "notes": [
+    "The Scanning group is generated from the table: one child group <code>grp_scan_&lt;key&gt;</code> per vector type, created by <code>create_scan_group</code> with laser number, power, speed and focus.",
+    "That is why the dialog in the video shows fourteen sub-groups under Scanning, from First border to Solid support."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 250,
+     "end": 261,
+     "lines": [
+      "// 10. Scanning: laser settings of every vector type (generated from the vector type table)",
+      "// One child group per BSID with laser number (1-based), power (W), speed",
+      "// (mm/s) and focus offset (mm). These values become the custom table.",
+      "// The group id 'grp_scan_<key>' is a persistent key; the visible name",
+      "// is the vector type name 'vec_<key>'.",
+      "var scanning_group = FACTORY.create_top_level_group('grp_scanning', text, FLAGS.DEF);",
+      "for (let i = 0; i < VECTOR_TYPES.VECTOR_TYPES.length; ++i)",
+      "{",
+      "  let l_vt = VECTOR_TYPES.VECTOR_TYPES[i];",
+      "  FACTORY.create_scan_group(scanning_group, 'grp_scan_' + l_vt.key, text,",
+      "    l_vt.scan_defaults, FLAGS.DEF, 'vec_' + l_vt.key);",
+      "}"
+     ],
+     "marks": [
+      3,
+      9
+     ]
+    },
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 602,
+     "end": 611,
+     "lines": [
+      "exports.create_scan_group = function(a_parent_grp, a_group_id, a_text, a_defaults, a_flags, a_name_key)",
+      "{",
+      "  let l_grp = create_child(a_parent_grp, a_group_id, a_text,",
+      "    choose_flags(a_flags, exports.FLAGS.DEF), a_name_key);",
+      "  exports.add_int(l_grp, a_text, 'laser_index', 1, 16, get_default(a_defaults, 'laser_index', 1), '');",
+      "  exports.add_real(l_grp, a_text, 'power', 0.0, 2000.0, get_default(a_defaults, 'power', 100.0), 'unit_w');",
+      "  exports.add_real(l_grp, a_text, 'speed', 1.0, 20000.0, get_default(a_defaults, 'speed', 1000.0), 'unit_mm_s');",
+      "  exports.add_real(l_grp, a_text, 'focus', -50.0, 50.0, get_default(a_defaults, 'focus', 0.0), 'unit_mm');",
+      "  return l_grp;",
+      "};"
+     ],
+     "marks": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the laser settings",
+   "scene": {
+    "mode": "energy",
+    "speed": 1200,
+    "power": 280
+   },
+   "notes": [
+    "<code>part.scanning</code> is keyed by the BSID as a string, for example <code>scanning['500']</code> for the volume hatch. <code>read_scan</code> returns laser number, power, speed and focus of one group."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 281,
+     "end": 288,
+     "lines": [
+      "  // One entry per vector type. Keys are bsids as strings (JSON compatible).",
+      "  // Example: r_part.scanning['500'] = { laser_index: 1, power: 280,",
+      "  // speed: 1200, focus: 0 } (laser_index 1-based as in the UI).",
+      "  for (let i = 0; i < VECTOR_TYPES.VECTOR_TYPES.length; ++i)",
+      "  {",
+      "    let l_vt = VECTOR_TYPES.VECTOR_TYPES[i];",
+      "    r_part.scanning[String(l_vt.bsid)] =",
+      "      READ.read_scan(G.scanning_group.getChildGrp('grp_scan_' + l_vt.key));"
+     ],
+     "marks": [
+      1,
+      6,
+      7
+     ]
+    },
+    {
+     "file": "lib/params/param_readers.js",
+     "start": 417,
+     "end": 426,
+     "lines": [
+      "exports.read_scan = function(a_grp)",
+      "{",
+      "  require_group(a_grp, 'read_scan');",
+      "  return {",
+      "    laser_index: a_grp.getParamVal('laser_index'),",
+      "    power: a_grp.getParamVal('power'),",
+      "    speed: a_grp.getParamVal('speed'),",
+      "    focus: a_grp.getParamVal('focus')",
+      "  };",
+      "};"
+     ],
+     "marks": [
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "attributes",
+   "title": "Every path carries its settings",
+   "scene": {
+    "mode": "energy",
+    "speed": 1600,
+    "power": 280
+   },
+   "notes": [
+    "When a hatch is added to the layer, <code>make_attr_info</code> looks up the scan settings of its BSID, and <code>EXPOSURE_ATTRIBUTES.apply</code> writes power, speed and focus onto the paths. Changing the speed changes these attributes, not the geometry: in the video the toolpaths stay exactly the same.",
+    "Raising only the speed lowers the energy per volume: 1600 mm/s at 280 W gives 58 J/mm³ instead of 78 J/mm³."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 103,
+     "end": 120,
+     "lines": [
+      "function make_attr_info(a_ctx, a_bsid, a_island_id, a_bounds)",
+      "{",
+      "  // The scan settings are stored with the BSID as string key, because",
+      "  // the settings object must survive a JSON round trip (see settings.js).",
+      "  let l_scan = a_ctx.scan_by_bsid[String(a_bsid)];",
+      "  // Tip: The UI shows laser numbers starting at 1, the toolpath",
+      "  // attribute uses 0-based laser indices.",
+      "  return {",
+      "    bsid: a_bsid,",
+      "    island_id: a_island_id,",
+      "    bounds: a_bounds,",
+      "    laser_index: l_scan.laser_index - 1,",
+      "    power: l_scan.power,",
+      "    speed: l_scan.speed,",
+      "    focus: l_scan.focus,",
+      "    color_int: VECTOR_TYPES.get_display_color_int(a_bsid)",
+      "  };",
+      "}"
+     ],
+     "marks": [
+      4,
+      12,
+      13
+     ]
+    },
+    {
+     "file": "lib/exposure/exposure_attributes.js",
+     "start": 80,
+     "end": 82,
+     "lines": [
+      "  a_hatch.setAttributeReal(ATTR.POWER, a_info.power);",
+      "  a_hatch.setAttributeReal(ATTR.SPEED, a_info.speed);",
+      "  a_hatch.setAttributeReal(ATTR.FOCUS, a_info.focus);"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "custom",
+   "title": "The custom table for the export",
+   "scene": {
+    "mode": "types"
+   },
+   "notes": [
+    "<code>build_custom_table</code> stores the same settings once per BSID at the model, under the name <code>customTable</code>. The exporters and the host read it from there; laserIndex is 0-based, laserNumber 1-based like in the dialog.",
+    "With laser assignment switched on, the table gets one more entry per vector type and laser (for example 2500 = volume hatch on laser 3). After the post-processing, <code>store_reduced_custom_tables</code> keeps only the BSIDs the paths really use, always starting from the full copy."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 520,
+     "end": 561,
+     "lines": [
+      "exports.build_custom_table = function(a_part, a_platform)",
+      "{",
+      "  let r_table = [];",
+      "  for (let i = 0; i < VECTOR_TYPES.VECTOR_TYPES.length; ++i)",
+      "  {",
+      "    let l_vt = VECTOR_TYPES.VECTOR_TYPES[i];",
+      "    let l_scan = a_part.scanning[String(l_vt.bsid)];",
+      "    r_table.push({",
+      "      bsid: l_vt.bsid,",
+      "      name: l_vt.key,",
+      "      laserIndex: l_scan.laser_index - 1,",
+      "      laserNumber: l_scan.laser_index,",
+      "      power: l_scan.power,",
+      "      speed: l_scan.speed,",
+      "      focus: l_scan.focus",
+      "    });",
+      "  }",
+      "",
+      "  if (!a_platform.laser_assignment.enabled) return r_table;",
+      "  // Laser count of the scanner array (rounded like in build_scanner_array).",
+      "  let l_lasers = Math.max(1, Math.round(a_platform.scanner_array.count_x)) *",
+      "    Math.max(1, Math.round(a_platform.scanner_array.count_y));",
+      "  for (let l = 0; l < l_lasers; ++l)",
+      "  {",
+      "    for (let i = 0; i < VECTOR_TYPES.VECTOR_TYPES.length; ++i)",
+      "    {",
+      "      let l_vt = VECTOR_TYPES.VECTOR_TYPES[i];",
+      "      let l_scan = a_part.scanning[String(l_vt.bsid)];",
+      "      r_table.push({",
+      "        bsid: LASER_BSID.make_laser_bsid(l_vt.bsid, l),",
+      "        // e.g. 'hatch_volume_laser2' (laser number 1-based, as in the UI)",
+      "        name: l_vt.key + '_laser' + (l + 1),",
+      "        laserIndex: l,",
+      "        laserNumber: l + 1,",
+      "        power: l_scan.power,",
+      "        speed: l_scan.speed,",
+      "        focus: l_scan.focus",
+      "      });",
+      "    }",
+      "  }",
+      "  return r_table;",
+      "};"
+     ],
+     "marks": [
+      10,
+      12,
+      13,
+      29,
+      34,
+      35
+     ]
+    },
+    {
+     "file": "main/main.js",
+     "start": 438,
+     "end": 440,
+     "lines": [
+      "  let l_custom_table = SETTINGS.build_custom_table(l_part, l_platform);",
+      "  model.setAttribEx(MODEL_ATTR.CUSTOM_TABLE, l_custom_table);",
+      "  model.setAttribEx(MODEL_ATTR.FULL_CUSTOM_TABLE, l_custom_table);"
+     ],
+     "marks": [
+      1,
+      2
+     ]
+    },
+    {
+     "file": "main/postprocess.js",
+     "start": 646,
+     "end": 665,
+     "lines": [
+      "function store_reduced_custom_tables(a_model_data, a_usage, a_complete)",
+      "{",
+      "  if (!a_complete)",
+      "  {",
+      "    LOG.info('Post-processing is incomplete: the custom tables keep all entries.');",
+      "  }",
+      "  for (let i = 0; i < a_usage.length; ++i)",
+      "  {",
+      "    let l_model = a_model_data.getModel(i);",
+      "    let l_full = SETTINGS.read_model_object(l_model, MODEL_ATTR.FULL_CUSTOM_TABLE);",
+      "    // Model without settings of this build style (warned in step 2).",
+      "    if (!Array.isArray(l_full)) continue;",
+      "    let l_table = l_full;",
+      "    if (a_complete && (a_usage[i].bsids.size > 0))",
+      "    {",
+      "      l_table = SETTINGS.reduce_custom_table(l_full, a_usage[i].bsids);",
+      "    }",
+      "    l_model.setAttribEx(MODEL_ATTR.CUSTOM_TABLE, l_table);",
+      "  }",
+      "}"
+     ],
+     "marks": [
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "estimate",
+   "title": "The exposure time estimate",
+   "scene": {
+    "mode": "time",
+    "speed": 1600
+   },
+   "notes": [
+    "After sorting, <code>estimate_layer_time_ms</code> walks every path of the layer in its final order. For each path <code>add_path_time</code> adds exposed length ÷ speed of the path, the jumps at the jump speed, the jump delays and the mark delays (see <a href=\"laser_timing.html\">Laser timing</a>).",
+    "The post-processing sums all layers into <code>built_time_estimation_ms</code>; the export writes it to <code>export_info.json</code>. For the hatch plate the volume hatch is about 10 400 mm per layer, so 1200 → 1600 mm/s saves about 217 s: 0:14:54 → 0:11:18 in the video."
+   ],
+   "ranges": [
+    {
+     "file": "lib/time/exposure_time.js",
+     "start": 196,
+     "end": 209,
+     "lines": [
+      "  l_t += a_path.getExposureLength() / a_speed * 1000.0;",
+      "  let l_skip_count = a_path.getSkipCount();",
+      "  if (l_skip_count > 0)",
+      "  {",
+      "    let l_skip_len = a_path.getSkipLength();",
+      "    l_t += l_skip_len / a_timing_ms.jump_speed * 1000.0;",
+      "    // Only the total skip length is known, not every single jump, so",
+      "    // the delay is taken for the mean jump length. This is exact while",
+      "    // all jumps are shorter than the length limit (the delay is linear",
+      "    // there) or the scaling is off; otherwise it is a slight",
+      "    // overestimate. Reading every jump would cost far more time.",
+      "    l_t += l_skip_count * jump_delay_ms(a_timing_ms, l_skip_len / l_skip_count);",
+      "  }",
+      "  l_t += get_mark_delay_count(l_mode, a_path.getPointCount()) * a_timing_ms.mark_delay_ms;"
+     ],
+     "marks": [
+      0,
+      4,
+      13
+     ]
+    },
+    {
+     "file": "main/postprocess.js",
+     "start": 554,
+     "end": 554,
+     "lines": [
+      "    let l_ms = EXPOSURE_TIME.estimate_layer_time_ms(modelData, n, l_timing, l_speed_lookup);"
+     ],
+     "marks": [
+      0
+     ]
+    },
+    {
+     "file": "main/postprocess.js",
+     "start": 692,
+     "end": 692,
+     "lines": [
+      "  modelData.setTrayAttrib(TRAY_ATTR.BUILD_TIME, Math.round(l_sum).toString());"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "speed",
+   "title": "A faster volume hatch by default",
+   "why": "Shorter build times, as in the video.",
+   "result": "New profiles start with 1600 mm/s for the volume hatch. On the hatch plate the estimate in <code>export_info.json</code> drops by about 3.6 minutes, from 0:14:54 to 0:11:17. Check the energy in the Energy view: you may have to raise the power as well.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 112,
+     "before": "  make_entry('hatch_volume',        500, 'none',             false, 280, 1200, 40, [ 25, 250,  45]),",
+     "after": "  make_entry('hatch_volume',        500, 'none',             false, 280, 1600, 40, [ 25, 250,  45]),"
+    }
+   ]
+  },
+  {
+   "id": "energy",
+   "title": "Faster, with the same energy per volume",
+   "why": "Save time without lowering the energy density.",
+   "result": "373 W at 1600 mm/s gives the same 78 J/mm³ as 280 W at 1200 mm/s. Whether the melt pool behaves the same must still be tested on the machine.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 112,
+     "before": "  make_entry('hatch_volume',        500, 'none',             false, 280, 1200, 40, [ 25, 250,  45]),",
+     "after": "  make_entry('hatch_volume',        500, 'none',             false, 373, 1600, 40, [ 25, 250,  45]),"
+    }
+   ]
+  },
+  {
+   "id": "laser2",
+   "title": "Supports on a second laser",
+   "why": "On a machine with two lasers, the supports can run in parallel with the part.",
+   "result": "Wall and solid supports default to laser 2 (laserIndex 1 in the custom table). The time estimate gives every laser its own clock, so a layer takes as long as the slower of part and supports. With laser assignment switched on, the scan fields decide instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 85,
+     "before": "    scan_defaults: { laser_index: 1, power: a_power, speed: a_speed, focus: 0.0 },",
+     "after": "    scan_defaults: { laser_index: (a_bsid >= 700) ? 2 : 1, power: a_power, speed: a_speed, focus: 0.0 },"
+    }
+   ]
+  }
+ ]
+}

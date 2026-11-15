@@ -1,0 +1,53 @@
+{
+ "duration": 54.77,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "A plate 4 mm above the build plate, carried by 13 thin support walls"
+  },
+  {
+   "t": 5.01,
+   "caption": "Layer at z 2 mm: one grey scan line per wall, no border, no hatch"
+  },
+  {
+   "t": 8.83,
+   "caption": "Exposure order: wall after wall, sorted for short jumps"
+  },
+  {
+   "t": 17.34,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 21.61,
+   "caption": "Wall supports › Layer skip"
+  },
+  {
+   "t": 25.94,
+   "caption": "Expose every n-th layer: type 2"
+  },
+  {
+   "t": 31.29,
+   "caption": "The walls are now exposed on every second layer only"
+  },
+  {
+   "t": 33.39,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 34.59,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 35.5,
+   "caption": "Layer at z 2.01 mm: the walls are still exposed"
+  },
+  {
+   "t": 39.38,
+   "caption": "Next layer: only the wall outlines (orange), no exposure"
+  },
+  {
+   "t": 49.25,
+   "caption": "Toolpaths in 3D up to the plate"
+  }
+ ]
+}

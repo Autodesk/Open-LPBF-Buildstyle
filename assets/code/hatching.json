@@ -1,0 +1,493 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the hatch groups",
+   "scene": {
+    "pattern": "meander"
+   },
+   "notes": [
+    "<b>Hatching</b> is always active (<code>FLAGS.DEF</code>, no on/off switch). It contains one hatch group for the volume and one for the core. Both are created by the same factory <code>create_hatch_group</code>, so they offer exactly the same parameters: pattern, hatch distance, sizes, rotation.",
+    "The empty <code>{}</code> means “use the defaults of the table” for the volume. The core overrides two of them: a coarser hatch distance of 0.12 mm."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 187,
+     "end": 202,
+     "lines": [
+      "// 5. Hatching (volume / hull and core)",
+      "// Always active. hatch_offset (mm): distance between the innermost",
+      "// contour ring and the hatch area; negative values let the hatch",
+      "// overlap the contours.",
+      "// create_hatch_group arguments: (parent, id, text, defaults, flags,",
+      "// offered patterns, with power optimization). Defaults not given here",
+      "// come from FACTORY.TABLE_DEFAULTS (e.g. hatch distance 0.1 mm,",
+      "// rotation +67 degrees per layer).",
+      "var hatching_group = FACTORY.create_top_level_group('grp_hatching', text, FLAGS.DEF);",
+      "FACTORY.add_real(hatching_group, text, 'hatch_offset', -2.0, 5.0, 0.05, 'unit_mm');",
+      "FACTORY.create_hatch_group(hatching_group, 'grp_hatch_volume', text, {}, FLAGS.DEF,",
+      "  exports.PART_PATTERN_KEYS, true);",
+      "// The core uses a larger hatch distance (0.12 mm) by default: the core",
+      "// is not visible, so faster settings are acceptable there.",
+      "FACTORY.create_hatch_group(hatching_group, 'grp_hatch_core', text,",
+      "  { hatch_distance: 0.12, stripe_width: 10.0 }, FLAGS.DEF, exports.PART_PATTERN_KEYS, true);"
+     ],
+     "marks": [
+      1,
+      4,
+      9,
+      10,
+      14
+     ]
+    }
+   ]
+  },
+  {
+   "id": "defaults",
+   "title": "One table of defaults",
+   "scene": {
+    "pattern": "chess"
+   },
+   "notes": [
+    "All hatch groups take their defaults from <code>TABLE_DEFAULTS</code>: 0.1 mm hatch distance, 10 mm stripes, 5 mm chess fields, 3 mm hexagon sides and 0.05 mm overlap between neighbouring stripes, fields and cells.",
+    "The rotation starts at 0° and adds 67° per layer. The limitation window (keep the lines away from the gas flow direction) is off by default; its direction 0° relative to the gas flow means lines across the flow."
+   ],
+   "ranges": [
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 141,
+     "end": 164,
+     "lines": [
+      "  // T4 rotation",
+      "  // MPBF background: 67 degrees has no common divisor with 180, so the",
+      "  // hatch direction repeats only after 180 layers. Default window",
+      "  // (off by default): hatch LINES perpendicular to the gas flow (gas flow",
+      "  // angle + 90 degrees), 120 degrees wide -> the lines are never closer",
+      "  // than 30 degrees to the gas flow direction (see pattern_rotation.js).",
+      "  start_angle: 0.0, angle_increment: 67.0,",
+      "  // limit_center_angle 0 relative to the gas flow = hatch lines perpendicular",
+      "  // to the gas flow (hatch angle value convention, see pattern_rotation.js).",
+      "  limit_center_mode: 'limit_center_gas_flow', limit_center_angle: 0.0, limit_width: 120.0,",
+      "  // T5 power optimization",
+      "  // Power range in W; vector lengths in mm that are converted to the",
+      "  // return times for minimum and maximum power.",
+      "  min_power: 150.0, max_power: 280.0, min_vector_length: 0.5, max_vector_length: 10.0,",
+      "  segment_splitting: false, microvector_length: 0.5, merge_equal_power: true,",
+      "  // T6 hatching",
+      "  // 0.1 mm = 100 micrometers between hatch lines. The block sort",
+      "  // values 0 mean \"use the default of the host\".",
+      "  hatch_distance: 0.1, min_vector_length_hatch: 0.05, optimized_sorting: true,",
+      "  blocksort_run_ahead_limit: 0.0, blocksort_min_block_segments: 0, blocksort_max_merge_distance: 0.0,",
+      "  stripe_width: 10.0, stripe_overlap: 0.05, stripe_script_sort: true, stripe_alternate: false,",
+      "  chess_size: 5.0, chess_overlap: 0.05,",
+      "  hexagon_side: 3.0, hexagon_overlap: 0.05,",
+      "  offset_inside_out: false"
+     ],
+     "marks": [
+      6,
+      18,
+      20,
+      21,
+      22
+     ]
+    }
+   ]
+  },
+  {
+   "id": "angle",
+   "title": "A new angle on every layer",
+   "scene": {
+    "pattern": "meander",
+    "layer": 2
+   },
+   "notes": [
+    "Before an area is hatched, the angle of this layer is computed: start angle + layer index × increment. Layer 2 on the left is turned by 67°.",
+    "The value is an <i>angle value</i> for the ATU builtins: 0° means lines parallel to Y, so the lines run at the angle value + 90°. The compass in the corner shows the line direction.",
+    "The angle value also sets the order of the lines. With <i>Optimized sorting</i> (on by default) an angle whose lines would be exposed downstream is turned by 180°: the same lines, exposed against the gas flow. See <a href=\"hatch_rotation.html\">Hatch rotation</a>."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 384,
+     "end": 392,
+     "lines": [
+      "  // Hatch angle of this layer: start angle + layer index * increment",
+      "  // (default 67 degrees), optionally kept inside a window, e.g. \"never",
+      "  // parallel to the gas flow\" (lib/exposure/pattern_rotation.js).",
+      "  // MPBF background: rotating the lines from layer to layer avoids that",
+      "  // hatch lines lie exactly on top of each other. The material gets more",
+      "  // uniform and the residual stress (which is highest along the scan",
+      "  // direction) is spread over all directions. 67 degrees is a common",
+      "  // choice because the same angle repeats only after many layers.",
+      "  let l_angle = ROTATION.get_line_angle(a_hatch_cfg.rotation, a_ctx.layer_index, a_ctx.gas_angle, 0.0);"
+     ],
+     "marks": [
+      8
+     ]
+    },
+    {
+     "file": "lib/exposure/pattern_rotation.js",
+     "start": 220,
+     "end": 227,
+     "lines": [
+      "  let l_raw = a_rot.start_angle + a_layer_index * a_rot.increment;",
+      "",
+      "  let l_limit = a_rot.limit;",
+      "  // A window that is off, has no valid width or is 180 degrees or wider",
+      "  // does not limit anything: plain rotation plus extra angle.",
+      "  if (!l_limit || !l_limit.enabled || !(l_limit.width > 0.0) || (l_limit.width >= S_LINE_PERIOD))",
+      "  {",
+      "    return against_gas_flow(a_rot, l_raw + l_extra, a_gas_angle);"
+     ],
+     "marks": [
+      0,
+      7
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dispatch",
+   "title": "Pick the pattern",
+   "scene": {
+    "pattern": "stripe"
+   },
+   "notes": [
+    "<code>create_pattern_hatch</code> chooses the function of the pattern. <b>Stripes</b> cut the area into strips of <code>stripe.width</code> with <code>createStripes</code>; the hatch lines run across each strip, so no vector is longer than about the stripe width.",
+    "The reference point (0, 0) puts the stripe borders on a fixed grid of the platform: all islands of a layer share the same stripe layout."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 322,
+     "end": 329,
+     "lines": [
+      "    switch (a_cfg.pattern)",
+      "    {",
+      "      case 'meander': l_hatch = make_meander_hatch(a_area, a_cfg, a_ctx); break;",
+      "      case 'stripe':  l_hatch = make_stripe_hatch(a_area, a_cfg, a_ctx); break;",
+      "      case 'chess':   l_hatch = make_chess_hatch(a_area, a_cfg, a_ctx); break;",
+      "      case 'hexagon': l_hatch = make_hexagon_hatch(a_area, a_cfg, a_ctx); break;",
+      "      case 'offset':  l_hatch = make_offset_hatch(a_area, a_cfg); break;",
+      "      default:"
+     ],
+     "marks": [
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    },
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 141,
+     "end": 151,
+     "lines": [
+      "function make_stripe_hatch(a_area, a_cfg, a_ctx)",
+      "{",
+      "  let l_width = a_cfg.stripe.width;",
+      "  let l_stripes = new ISLAND.bsIsland();",
+      "  // Arguments: result, width, minimum width, overlap, length (0 = endless), angle, reference point",
+      "  // Minimum width = 1/6 of the stripe width: narrower rest stripes at the",
+      "  // area border are merged into the neighboring stripe (no tiny stripes).",
+      "  // Reference point (0, 0): the stripe borders lie on a fixed grid of the",
+      "  // platform, so all islands of a layer share the same stripe layout.",
+      "  a_area.createStripes(l_stripes, l_width, l_width / 6.0, a_cfg.stripe.overlap, 0.0,",
+      "    a_ctx.line_angle, new VEC2.Vec2(0.0, 0.0));"
+     ],
+     "marks": [
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "chess",
+   "title": "Chessboard: two directions",
+   "scene": {
+    "pattern": "chess"
+   },
+   "notes": [
+    "<code>createRectangles</code> cuts the area into square fields that are rotated with the hatch angle. <code>splitCheckerboard</code> sorts them into the two colours of a chessboard.",
+    "One colour is hatched at the layer angle, the other at +90°. The residual stress, which is highest along the scan direction, is mixed between both directions on a short length scale."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 175,
+     "end": 203,
+     "lines": [
+      "function make_chess_hatch(a_area, a_cfg, a_ctx)",
+      "{",
+      "  let l_size = a_cfg.chess.size;",
+      "  let l_ov = a_cfg.chess.overlap;",
+      "  let l_fields = new ISLAND.bsIsland();",
+      "  // fShift 0: no row offset (a real chessboard, not a brick pattern).",
+      "  // fMinArea = 1 % of a full field: smaller rest pieces at the area",
+      "  // border are merged into adjacent fields.",
+      "  // The field grid is rotated with the hatch angle around (0, 0).",
+      "  a_area.createRectangles(l_fields, {",
+      "    fRectSizeX: l_size, fRectSizeY: l_size,",
+      "    fOverlapX: l_ov, fOverlapY: l_ov,",
+      "    fShift: 0.0,",
+      "    fAngle: a_ctx.line_angle,",
+      "    fMinArea: l_size * l_size / 100.0,",
+      "    Origin: new VEC2.Vec2(0.0, 0.0)",
+      "  });",
+      "",
+      "  // Split into the \"black\" and \"white\" fields of the chessboard.",
+      "  let l_odd = new ISLAND.bsIsland();",
+      "  let l_even = new ISLAND.bsIsland();",
+      "  l_fields.splitCheckerboard(l_odd, l_even);",
+      "",
+      "  let r_hatch = HATCH_OPTIONS.hatch_island(l_even, a_cfg, a_ctx.line_angle, a_ctx.gas_dir);",
+      "  let l_odd_hatch = HATCH_OPTIONS.hatch_island(l_odd, a_cfg, angle_with_extra(a_ctx, 90.0), a_ctx.gas_dir);",
+      "  // moveDataFrom appends the blocks (the source hatch is emptied).",
+      "  r_hatch.moveDataFrom(l_odd_hatch);",
+      "  return r_hatch;",
+      "}"
+     ],
+     "marks": [
+      9,
+      21,
+      24
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hexagon",
+   "title": "Hexagons: three directions",
+   "scene": {
+    "pattern": "hexagon"
+   },
+   "notes": [
+    "In a hexagon grid three cells meet at every corner, so two directions are not enough. <code>get_hexagon_group</code> gives every cell a group 0, 1 or 2 so that touching cells never share a group.",
+    "Each group gets its own angle: +0°, +60° and +120°. The three shades of green on the left are the three groups."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 104,
+     "end": 111,
+     "lines": [
+      "function get_hexagon_group(a_x_index, a_y_index)",
+      "{",
+      "  if (MATH.mod(a_y_index, 2) === 0)",
+      "  {",
+      "    return MATH.mod(a_x_index, 3);",
+      "  }",
+      "  return MATH.mod(a_x_index + 2, 3);",
+      "}"
+     ],
+     "marks": [
+      2,
+      4,
+      6
+     ]
+    },
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 242,
+     "end": 250,
+     "lines": [
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  for (let g = 0; g < l_groups.length; ++g)",
+      "  {",
+      "    // Group 0 uses the main angle, groups 1 and 2 add 60 / 120 degrees.",
+      "    let l_angle = (g === 0) ? a_ctx.line_angle : angle_with_extra(a_ctx, g * 60.0);",
+      "    let l_group_hatch = HATCH_OPTIONS.hatch_island(l_groups[g], a_cfg, l_angle, a_ctx.gas_dir);",
+      "    r_hatch.moveDataFrom(l_group_hatch);",
+      "  }",
+      "  return r_hatch;"
+     ],
+     "marks": [
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "offset",
+   "title": "Offset: rings that follow the outline",
+   "scene": {
+    "pattern": "offset"
+   },
+   "notes": [
+    "The offset pattern needs no builtin pattern at all: it shrinks the area again and again. Ring <i>k</i> lies at 0.5 · d + k · d inside the border, every ring is computed from the original area, and every second ring is reversed.",
+    "There are no line ends at the border, which helps small and thin areas; on a large area the outer rings become very long vectors."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 264,
+     "end": 293,
+     "lines": [
+      "function make_offset_hatch(a_area, a_cfg)",
+      "{",
+      "  let l_d = a_cfg.hatch_distance;",
+      "  let l_rings = [];",
+      "  for (let k = 0; k < S_MAX_OFFSET_RINGS; ++k)",
+      "  {",
+      "    // The first ring lies half a hatch distance inside the area border.",
+      "    // Ring k lies at 0.5 * d + k * d, so neighboring rings are d apart.",
+      "    // Every ring is computed from the original area (no error build-up).",
+      "    let l_ring_isl = ISL.offset(a_area, -(0.5 * l_d + k * l_d));",
+      "    if (l_ring_isl.isEmpty()) break;",
+      "    let l_ring_hatch = new HATCH.bsHatch();",
+      "    l_ring_isl.borderToHatch(l_ring_hatch);",
+      "    if ((k % 2) === 1) l_ring_hatch.flip(false, true);",
+      "    l_rings.push(l_ring_hatch);",
+      "  }",
+      "",
+      "  // The rings were collected from outside to inside; inside_out reverses",
+      "  // the exposure order (innermost ring first).",
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  if (a_cfg.offset.inside_out === true)",
+      "  {",
+      "    for (let i = l_rings.length - 1; i >= 0; --i) r_hatch.moveDataFrom(l_rings[i]);",
+      "  }",
+      "  else",
+      "  {",
+      "    for (let i = 0; i < l_rings.length; ++i) r_hatch.moveDataFrom(l_rings[i]);",
+      "  }",
+      "  return r_hatch;",
+      "}"
+     ],
+     "marks": [
+      9,
+      13
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lines",
+   "title": "The lines themselves",
+   "scene": {
+    "pattern": "meander",
+    "progress": 0.45
+   },
+   "notes": [
+    "Every pattern ends in <code>hatch_island</code>, which calls the builtin <code>hatchExt2</code>. <code>nHatchFlagAlternating</code> reverses every second line (the meander), <code>nHatchFlagFixedZeroOrigin</code> puts the lines on multiples of the hatch distance measured from the origin, so neighbouring areas line up.",
+    "The vectors get BSID 500 (volume hatch, 280 W, 1200 mm/s). The order shown on the left is the order of creation; ATU's block sorting can still reorder the blocks, and the hatch angle decides in which direction the lines of a block are exposed."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hatch_options.js",
+     "start": 72,
+     "end": 75,
+     "lines": [
+      "exports.build_hatch_ext2_options = function(a_cfg, a_angle, a_gas_dir)",
+      "{",
+      "  // Flags are bits; '|' (bitwise OR) combines several flags into one number.",
+      "  let l_flags = HATCH.nHatchFlagAlternating | HATCH.nHatchFlagFixedZeroOrigin;"
+     ],
+     "marks": [
+      3
+     ]
+    },
+    {
+     "file": "lib/exposure/hatch_options.js",
+     "start": 131,
+     "end": 137,
+     "lines": [
+      "exports.hatch_island = function(a_isl, a_cfg, a_angle, a_gas_dir)",
+      "{",
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  if (a_isl.isEmpty()) return r_hatch;",
+      "  a_isl.hatchExt2(r_hatch, exports.build_hatch_ext2_options(a_cfg, a_angle, a_gas_dir));",
+      "  return r_hatch;",
+      "};"
+     ],
+     "marks": [
+      4
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "stripes_default",
+   "title": "Use stripes as the default volume pattern",
+   "why": "Large parts then start with short vectors instead of lines across the whole area.",
+   "result": "New profiles show <i>Stripes</i> under Hatching › Volume hatching. Press <b>Stripes</b> in <b>Try it</b> to see the result; the core keeps meander.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 197,
+     "before": "FACTORY.create_hatch_group(hatching_group, 'grp_hatch_volume', text, {}, FLAGS.DEF,",
+     "after": "FACTORY.create_hatch_group(hatching_group, 'grp_hatch_volume', text, { pattern: 'pattern_stripe' }, FLAGS.DEF,",
+     "summary_before": "{}",
+     "summary_after": "{ pattern: 'pattern_stripe' }"
+    }
+   ]
+  },
+  {
+   "id": "chess_4",
+   "title": "Smaller chess fields",
+   "why": "4 mm fields instead of 5 mm: shorter vectors and a finer mix of the two directions.",
+   "result": "The default of every hatch group that offers the chessboard changes to 4 mm. Check it in <b>Try it</b> with <b>Chessboard</b> and the field size slider. For one profile, change Field size in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 162,
+     "before": "  chess_size: 5.0, chess_overlap: 0.05,",
+     "after": "  chess_size: 4.0, chess_overlap: 0.05,"
+    }
+   ]
+  },
+  {
+   "id": "distance",
+   "title": "A denser volume hatch",
+   "why": "0.09 mm instead of 0.1 mm between the lines puts more energy into the volume.",
+   "result": "Volume hatch about 86 J/mm³ instead of 78 J/mm³ (280 / (1200 · 0.09 · 0.03)). Only the volume uses this table value: core, downskin, upskin and supports set their own distance.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 159,
+     "before": "  hatch_distance: 0.1, min_vector_length_hatch: 0.05, optimized_sorting: true,",
+     "after": "  hatch_distance: 0.09, min_vector_length_hatch: 0.05, optimized_sorting: true,"
+    }
+   ]
+  },
+  {
+   "id": "rotation_90",
+   "title": "Rotate by 90° instead of 67°",
+   "why": "Lines alternate strictly between X and Y. The pattern_rotation.js header explains the drawback: the directions repeat after only two layers.",
+   "result": "Every hatch group defaults to 90° per layer. With 67° the same direction comes back only after 180 layers.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 147,
+     "before": "  start_angle: 0.0, angle_increment: 67.0,",
+     "after": "  start_angle: 0.0, angle_increment: 90.0,"
+    }
+   ]
+  }
+ ]
+}

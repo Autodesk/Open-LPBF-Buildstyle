@@ -1,0 +1,376 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "surfaces"
+   },
+   "notes": [
+    "Every parameter you see in the profile dialog is created here, once, when the project is compiled. <code>create_top_level_group</code> makes the group, the <code>add_*</code> calls add one parameter each: <i>id, minimum, maximum, default, unit</i>.",
+    "<code>FLAGS.OPT_OFF</code> makes the group optional and switched off: that is the <i>off</i> you switch to <i>on</i> in the video. The hatch group at the end gives the downskin its own hatching with a finer hatch distance (0.08 mm)."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 204,
+     "end": 223,
+     "lines": [
+      "// 6. Multi-layer overhang (downskin)",
+      "// Off by default. surface_angle (degrees): regions whose surface is",
+      "// flatter than this angle are downskin (0 = horizontal overhang).",
+      "// reference_layers: number of layers below that are compared (max. 20,",
+      "// see lower_layers_dependence in main/main.js).",
+      "// min_width (mm): narrower downskin slivers are ignored.",
+      "// overlap (mm): the downskin hatch reaches this far into the volume.",
+      "// *_splitting: contours inside the downskin get the downskin BSIDs.",
+      "// MPBF background: downskin hatch uses a smaller hatch distance (0.08 mm)",
+      "// and, via its BSID, lower power: above powder the heat cannot flow",
+      "// away, so less energy is needed to avoid sagging and rough surfaces.",
+      "var overhang_group = FACTORY.create_top_level_group('grp_overhang', text, FLAGS.OPT_OFF);",
+      "FACTORY.add_real(overhang_group, text, 'surface_angle', 0.0, 89.0, 45.0, 'unit_deg');",
+      "FACTORY.add_int(overhang_group, text, 'reference_layers', 1, 20, 3, 'unit_layers');",
+      "FACTORY.add_real(overhang_group, text, 'min_width', 0.0, 10.0, 0.1, 'unit_mm');",
+      "FACTORY.add_real(overhang_group, text, 'overlap', 0.0, 5.0, 0.1, 'unit_mm');",
+      "FACTORY.add_bool(overhang_group, text, 'border_splitting', true);",
+      "FACTORY.add_bool(overhang_group, text, 'fill_contour_splitting', true);",
+      "FACTORY.create_hatch_group(overhang_group, 'grp_hatch_downskin', text,",
+      "  { hatch_distance: 0.08 }, FLAGS.DEF, exports.PART_PATTERN_KEYS, true);"
+     ],
+     "marks": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "mode": "surfaces"
+   },
+   "notes": [
+    "Before the layers are calculated, the values of the part's profile are copied into a plain JavaScript object. From here on the code never talks to the UI again: it only uses <code>part.overhang.surface_angle</code>, <code>part.overhang.reference_layers</code> and so on.",
+    "<code>enabled</code> is the group's on/off switch. Move the angle slider in <b>Try it</b>: this is the value that ends up in <code>surface_angle</code>."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 253,
+     "end": 262,
+     "lines": [
+      "    overhang: {",
+      "      enabled: G.overhang_group.isGrpEnabled(),",
+      "      surface_angle: G.overhang_group.getParamVal('surface_angle'),",
+      "      reference_layers: G.overhang_group.getParamVal('reference_layers'),",
+      "      min_width: G.overhang_group.getParamVal('min_width'),",
+      "      overlap: G.overhang_group.getParamVal('overlap'),",
+      "      border_splitting: G.overhang_group.getParamVal('border_splitting'),",
+      "      fill_contour_splitting: G.overhang_group.getParamVal('fill_contour_splitting'),",
+      "      hatch: READ.read_hatch(G.overhang_group.getChildGrp('grp_hatch_downskin'), G.PART_PATTERN_KEYS)",
+      "    },"
+     ],
+     "marks": [
+      1,
+      2,
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "detect",
+   "title": "Find the downskin of every island",
+   "scene": {
+    "mode": "layers",
+    "dimVolume": true
+   },
+   "notes": [
+    "The exposure of a layer is calculated island by island (an island is one closed area of a part in a layer). For each island the code asks for its downskin area, but only if the group is enabled; otherwise the area stays empty and nothing below changes.",
+    "Downskin has priority: where an area is both downskin and upskin (a thin plate), the upskin is cut away."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 499,
+     "end": 507,
+     "lines": [
+      "  // Skin areas: downskin has priority over upskin.",
+      "  // MPBF background: downskin = area whose surface is flatter than the",
+      "  // 'surface angle' compared with the reference layers below (powder",
+      "  // below); upskin = area not covered by the next layer above (top",
+      "  // surface). Slivers narrower than 'min width' are dropped, because",
+      "  // they would only create very short vectors.",
+      "  let l_ds = l_part.overhang.enabled ? SKIN.split_downskin(a_ctx.model, a_island, l_part.overhang) : ISL.empty();",
+      "  let l_us = l_part.upskin.enabled ? SKIN.split_upskin_one_layer(a_island, l_part.upskin) : ISL.empty();",
+      "  if (!l_us.isEmpty() && !l_ds.isEmpty()) l_us = ISL.subtract(l_us, l_ds);"
+     ],
+     "marks": [
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "title": "Compare with the layers below",
+   "scene": {
+    "mode": "layers",
+    "dimVolume": true,
+    "upToZ": 29
+   },
+   "notes": [
+    "The real work is done by the ATU builtin <code>splitMultiLayerOverhangExt2</code>. It compares the island with <code>iRefLayers</code> layers below and returns the part that is flatter than <code>fMaxSurfaceAngle</code>: the layers on the left stop at the first shelf layer, the blue part has no support below.",
+    "<code>bUseSolidSupportsBelow</code>: areas that rest on solid supports are not downskin. Finally <code>ISL.opening</code> removes slivers narrower than <code>min_width</code>."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/skin_split.js",
+     "start": 71,
+     "end": 101,
+     "lines": [
+      "exports.split_downskin = function(a_model, a_island, a_cfg)",
+      "{",
+      "  let l_vol = new ISLAND.bsIsland();",
+      "  let l_ovh = new ISLAND.bsIsland();",
+      "  // Only these option keys are used on purpose (unknown keys raise an error).",
+      "  // fOverlap 0: the overlap into the volume is added later by the caller",
+      "  //   (overhang.overlap in exposure_layer.js), only for the hatch area.",
+      "  // fTolerance 0.02 mm: calculation tolerance (reduces artifacts).",
+      "  // bIncreaseAccuracy: extra processing for a more accurate result",
+      "  //   (slower to compute).",
+      "  // bUseSolidSupportsBelow: solid supports in the layers below are taken",
+      "  //   into account, so areas resting on solid supports are not treated",
+      "  //   as overhang above powder.",
+      "  // bEnableSharpCorners: less rounded corners in the result.",
+      "  // volumeResult (the non-overhang part) is filled but not used here.",
+      "  a_island.splitMultiLayerOverhangExt2({",
+      "    srcModel: a_model,",
+      "    fMaxSurfaceAngle: a_cfg.surface_angle,",
+      "    fOverlap: 0.0,",
+      "    fTolerance: 0.02,",
+      "    bIncreaseAccuracy: true,",
+      "    iRefLayers: a_cfg.reference_layers,",
+      "    bUseSolidSupportsBelow: true,",
+      "    bEnableSharpCorners: true,",
+      "    volumeResult: l_vol,",
+      "    overhangResult: l_ovh",
+      "  });",
+      "  // The opening result is clipped to the island, so the downskin never",
+      "  // reaches outside of the part outline.",
+      "  return ISL.opening(l_ovh, a_cfg.min_width, a_island);",
+      "};"
+     ],
+     "marks": [
+      17,
+      21,
+      29
+     ]
+    }
+   ]
+  },
+  {
+   "id": "overlap",
+   "title": "Grow into the volume and hatch",
+   "scene": {
+    "mode": "layers",
+    "overlap": true,
+    "upToZ": 30
+   },
+   "notes": [
+    "The downskin area is grown by <code>overlap</code> (light blue on the left, exaggerated) and cut out of the volume, so the downskin hatch and the volume hatch overlap a little and bond.",
+    "Then every area is hatched with its own settings and its own vector type: the volume with BSID 500, the downskin with <code>BSID.hatch_downskin</code> (501)."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 439,
+     "end": 447,
+     "lines": [
+      "  // The skin areas are grown by their 'overlap' (mm) before they are",
+      "  // clipped to the hatch area. The skin hatch then reaches a little into",
+      "  // the neighboring volume, which bonds both areas and avoids a gap at",
+      "  // the border between them.",
+      "  let l_ds_area = a_isl_info.ds.isEmpty() ? ISL.empty() :",
+      "    ISL.intersect(ISL.offset(a_isl_info.ds, l_part.overhang.overlap), l_area);",
+      "  let l_us_area = a_us.isEmpty() ? ISL.empty() :",
+      "    ISL.subtract(ISL.intersect(ISL.offset(a_us, l_part.upskin.overlap), l_area), l_ds_area);",
+      "  let l_vol_area = ISL.subtract(ISL.subtract(l_area, l_ds_area), l_us_area);"
+     ],
+     "marks": [
+      5,
+      8
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 458,
+     "end": 458,
+     "lines": [
+      "  hatch_area(a_ctx, a_result, l_split.hull, l_part.hatching.volume, BSID.hatch_volume, l_id, l_b, false);"
+     ],
+     "marks": [
+      0
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 465,
+     "end": 465,
+     "lines": [
+      "  hatch_area(a_ctx, a_result, l_ds_area, l_part.overhang.hatch, BSID.hatch_downskin, l_id, l_b, false);"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Less energy for BSID 501",
+   "scene": {
+    "mode": "layers"
+   },
+   "notes": [
+    "The vector type table gives every BSID its default laser power, speed, scan order and preview colour. The downskin variants are their normal type + 1, with less power: 120 W instead of 280 W for the hatch.",
+    "These are only defaults: they fill the <b>Scanning</b> group, where you can change them per profile without touching the code. The colour is the blue you see in the Exposure Preview."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 102,
+     "end": 104,
+     "lines": [
+      "// The downskin variants are bsid + 1 (101, 201, 301, 501).",
+      "exports.VECTOR_TYPES = Object.freeze([",
+      "  //          key                    bsid family               ds     P[W] v[mm/s] order color"
+     ],
+     "marks": []
+    },
+    {
+     "file": "main/vector_types.js",
+     "start": 112,
+     "end": 113,
+     "lines": [
+      "  make_entry('hatch_volume',        500, 'none',             false, 280, 1200, 40, [ 25, 250,  45]),",
+      "  make_entry('hatch_downskin',      501, 'none',             true,  120, 1000, 30, [  0, 120, 255]),"
+     ],
+     "marks": [
+      1
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "default_on",
+   "title": "Switch downskin on by default",
+   "why": "New profiles start with downskin detection enabled.",
+   "result": "In a new profile, “Multi-layer overhang (downskin)” shows <i>on</i>. Profiles you already have may keep their stored setting.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 215,
+     "before": "var overhang_group = FACTORY.create_top_level_group('grp_overhang', text, FLAGS.OPT_OFF);",
+     "after": "var overhang_group = FACTORY.create_top_level_group('grp_overhang', text, FLAGS.OPT_ON);"
+    }
+   ]
+  },
+  {
+   "id": "angle_30",
+   "title": "Use 30° as the default surface angle",
+   "why": "Only clearly flat overhangs become downskin; the 30° slope of the demo part would then be self-supporting.",
+   "result": "The default changes to 30°. Set the slider in <b>Try it</b> to 30° to preview what this does to the demo part. For a single profile you do not need code: just change the value in the dialog.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 216,
+     "before": "FACTORY.add_real(overhang_group, text, 'surface_angle', 0.0, 89.0, 45.0, 'unit_deg');",
+     "after": "FACTORY.add_real(overhang_group, text, 'surface_angle', 0.0, 89.0, 30.0, 'unit_deg');"
+    }
+   ]
+  },
+  {
+   "id": "power",
+   "title": "Lower the default downskin hatch power",
+   "why": "Less energy above the powder, e.g. for a material that sags easily.",
+   "result": "Downskin hatch default 100 W: about 42 J/mm³ instead of 50 J/mm³ (100 / (1000 · 0.08 · 0.03)). For one profile, change Scanning › Downskin hatching › power in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 113,
+     "before": "  make_entry('hatch_downskin',      501, 'none',             true,  120, 1000, 30, [  0, 120, 255]),",
+     "after": "  make_entry('hatch_downskin',      501, 'none',             true,  100, 1000, 30, [  0, 120, 255]),"
+    }
+   ]
+  },
+  {
+   "id": "colour",
+   "title": "Show downskin in another colour",
+   "why": "A colour that stands out better in your screenshots. Only the preview changes, not the toolpath.",
+   "result": "The downskin hatch is drawn purple in the Exposure Preview and the 3D View.",
+   "atu": [
+    "compile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 113,
+     "before": "  make_entry('hatch_downskin',      501, 'none',             true,  120, 1000, 30, [  0, 120, 255]),",
+     "after": "  make_entry('hatch_downskin',      501, 'none',             true,  120, 1000, 30, [170,   0, 255]),",
+     "summary_before": "[0, 120, 255]",
+     "summary_after": "[170, 0, 255]"
+    }
+   ]
+  },
+  {
+   "id": "more_layers",
+   "title": "Allow more than 20 reference layers",
+   "why": "Very thin layers need more layers below to recognise a flat overhang. The limit lives in two places that must match.",
+   "result": "Reference layers accepts up to 40. <code>lower_layers_dependence</code> tells ATU how many layers below a layer depends on; if it is smaller than the parameter, the single-layer preview can show a different downskin than the full build.",
+   "atu": [
+    "compile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 217,
+     "before": "FACTORY.add_int(overhang_group, text, 'reference_layers', 1, 20, 3, 'unit_layers');",
+     "after": "FACTORY.add_int(overhang_group, text, 'reference_layers', 1, 40, 3, 'unit_layers');"
+    },
+    {
+     "file": "main/main.js",
+     "line": 579,
+     "before": "  properties.adsk_main.lower_layers_dependence = 20;",
+     "after": "  properties.adsk_main.lower_layers_dependence = 40;"
+    }
+   ]
+  }
+ ]
+}

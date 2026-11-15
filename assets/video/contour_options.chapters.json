@@ -1,0 +1,89 @@
+{
+ "duration": 114.08,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Hull cylinder, 24 mm diameter"
+  },
+  {
+   "t": 5.03,
+   "caption": "Layer 100 (z 3 mm): first border (red) around the hatch (green)"
+  },
+  {
+   "t": 8.54,
+   "caption": "Turn on the Start Points overlay"
+  },
+  {
+   "t": 12.69,
+   "caption": "Start point shift Off: every layer starts the border at the same point (the seam)"
+  },
+  {
+   "t": 26.46,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 31.64,
+   "caption": "Contours › First border › Start point shift"
+  },
+  {
+   "t": 36.35,
+   "caption": "Mode: Off → Random + previous layers"
+  },
+  {
+   "t": 44.64,
+   "caption": "Stay at least 1 mm away from the start points of the last 3 layers"
+  },
+  {
+   "t": 48.64,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 49.84,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 51.05,
+   "caption": "Now the start point moves from layer to layer: the seams are spread around the part"
+  },
+  {
+   "t": 64.81,
+   "caption": "Open the profile again"
+  },
+  {
+   "t": 70.12,
+   "caption": "Line stipple: switch from off to on"
+  },
+  {
+   "t": 77.45,
+   "caption": "Show its parameters"
+  },
+  {
+   "t": 79.2,
+   "caption": "Dash length: 1 mm → 2 mm"
+  },
+  {
+   "t": 85.45,
+   "caption": "2 passes: the second pass fills the gaps of the first"
+  },
+  {
+   "t": 88.45,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 89.65,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 90.88,
+   "caption": "Zoom to the right edge, hatch already exposed"
+  },
+  {
+   "t": 95.06,
+   "caption": "Animation: the border is exposed as 2 mm dashes, then the gaps are closed"
+  },
+  {
+   "t": 108.57,
+   "caption": "Toolpaths in 3D up to layer 100"
+  }
+ ]
+}

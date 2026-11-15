@@ -1,0 +1,559 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Five platform parameters",
+   "scene": {
+    "mode": "time"
+   },
+   "notes": [
+    "Laser timing is a platform group (<code>FLAGS.PLATFORM</code>): it describes the scanner of the machine, not the part. ATU reads it from the profile that is set as the platform profile.",
+    "Jump speed is the speed of the spot while the laser is off. The delays are waiting times of the mirrors, in microseconds. <i>Minimum jump delay</i> and <i>jump length limit</i> make short jumps wait less; the limit 0 (default) switches that off."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 267,
+     "end": 282,
+     "lines": [
+      "// 11. Laser timing",
+      "// Used for the power optimization, the exposure time estimate and the",
+      "// LSR time column. jump_speed (mm/s): speed of the laser spot while the",
+      "// laser is off. mark_delay / jump_delay (microseconds): waiting times of",
+      "// the scanner after a marked sequence (every hatch vector, once per",
+      "// contour) / after a jump, so the mirrors can settle before the next",
+      "// action. min_jump_delay / jump_length_limit: jumps shorter than the",
+      "// limit get a delay between min_jump_delay (length 0) and jump_delay",
+      "// (lib/time/scanner_delays.js). The limit 0 (default) switches this off,",
+      "// so every jump gets the full jump delay.",
+      "var laser_timing_group = FACTORY.create_top_level_group('grp_laser_timing', text, FLAGS.PLATFORM);",
+      "FACTORY.add_real(laser_timing_group, text, 'jump_speed', 1.0, 100000.0, 7000.0, 'unit_mm_s');",
+      "FACTORY.add_real(laser_timing_group, text, 'mark_delay', 0.0, 100000.0, 10.0, 'unit_us');",
+      "FACTORY.add_real(laser_timing_group, text, 'jump_delay', 0.0, 100000.0, 50.0, 'unit_us');",
+      "FACTORY.add_real(laser_timing_group, text, 'min_jump_delay', 0.0, 100000.0, 0.0, 'unit_us');",
+      "FACTORY.add_real(laser_timing_group, text, 'jump_length_limit', 0.0, 1000.0, 0.0, 'unit_mm');"
+     ],
+     "marks": [
+      11,
+      12,
+      13,
+      14,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read and check",
+   "scene": {
+    "mode": "time"
+   },
+   "notes": [
+    "<code>read_platform_settings</code> keeps the delays in microseconds (<code>_us</code>); every user converts them itself. The time calculations divide by the jump speed, so the validation rejects a jump speed of 0, and with the scaling switched on a minimum jump delay above the full jump delay."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 313,
+     "end": 319,
+     "lines": [
+      "    laser_timing: {",
+      "      jump_speed: G.laser_timing_group.getParamVal('jump_speed'),",
+      "      mark_delay_us: G.laser_timing_group.getParamVal('mark_delay'),",
+      "      jump_delay_us: G.laser_timing_group.getParamVal('jump_delay'),",
+      "      min_jump_delay_us: G.laser_timing_group.getParamVal('min_jump_delay'),",
+      "      jump_length_limit: G.laser_timing_group.getParamVal('jump_length_limit')",
+      "    },"
+     ],
+     "marks": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    },
+    {
+     "file": "main/settings.js",
+     "start": 461,
+     "end": 471,
+     "lines": [
+      "exports.validate_platform_settings = function(a_platform)",
+      "{",
+      "  let r_errors = [];",
+      "  // The time calculations divide by the jump speed.",
+      "  if (!(a_platform.laser_timing.jump_speed > 0))",
+      "    r_errors.push('Laser timing: jump speed must be greater than 0');",
+      "  // A minimum above the full delay would make short jumps slower than",
+      "  // long ones; only checked when the scaling is switched on.",
+      "  if ((a_platform.laser_timing.jump_length_limit > 0) &&",
+      "      (a_platform.laser_timing.min_jump_delay_us > a_platform.laser_timing.jump_delay_us))",
+      "    r_errors.push('Laser timing: minimum jump delay must not be greater than the jump delay');"
+     ],
+     "marks": [
+      4,
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "scaled",
+   "title": "Short jumps, short delay",
+   "scene": {
+    "mode": "jump",
+    "minJumpDelay": 10,
+    "jumpLimit": 1
+   },
+   "notes": [
+    "A short jump moves the mirrors only a little, so they settle faster. <code>scaled_jump_delay</code> gives jumps shorter than the limit a delay on a straight line from the minimum (length 0) to the full jump delay (length = limit). Longer jumps get the full delay.",
+    "Missing or invalid settings give the full delay, and a jump of (almost) zero length gets none. The time estimate, the power optimization, the laser assignment and the LSR time column all call this one function, so they cannot disagree."
+   ],
+   "ranges": [
+    {
+     "file": "lib/time/scanner_delays.js",
+     "start": 78,
+     "end": 89,
+     "lines": [
+      "exports.scaled_jump_delay = function(a_full_delay, a_min_delay, a_length_limit, a_jump_length)",
+      "{",
+      "  if (!(a_jump_length > S_MIN_JUMP)) return 0.0;",
+      "  // The negated comparisons are also true for undefined and NaN, so",
+      "  // missing or invalid scaling settings give the full delay.",
+      "  if (!(a_length_limit > 0.0) || !(a_min_delay >= 0.0) || !(a_min_delay < a_full_delay) ||",
+      "      (a_jump_length >= a_length_limit))",
+      "  {",
+      "    return a_full_delay;",
+      "  }",
+      "  return a_min_delay + (a_full_delay - a_min_delay) * (a_jump_length / a_length_limit);",
+      "};"
+     ],
+     "marks": [
+      2,
+      10
+     ]
+    }
+   ]
+  },
+  {
+   "id": "path",
+   "title": "The time of one path",
+   "scene": {
+    "mode": "time",
+    "markDelay": 200
+   },
+   "notes": [
+    "<code>add_path_time</code> adds, for one path: the jump from the last laser position with its jump delay, the marking (length ÷ speed of the vector type), the jumps between the vectors of a hatch block with their delays, and the mark delays.",
+    "A mark delay is spent every time the laser switches off: after every hatch vector, but only once at the end of a contour, whose corners are marked without stopping. On the hatch plate a layer has 471 hatch vectors and one border: 472 mark delays."
+   ],
+   "ranges": [
+    {
+     "file": "lib/time/exposure_time.js",
+     "start": 113,
+     "end": 117,
+     "lines": [
+      "function get_mark_delay_count(a_mode, a_count)",
+      "{",
+      "  if (a_mode === POLY_IT.nPolyHatch) return Math.floor(a_count / 2);",
+      "  return (a_count >= 2) ? 1 : 0;",
+      "}"
+     ],
+     "marks": [
+      2,
+      3
+     ]
+    },
+    {
+     "file": "lib/time/exposure_time.js",
+     "start": 182,
+     "end": 214,
+     "lines": [
+      "function add_path_time(a_laser, a_path, a_first, a_last, a_speed, a_timing_ms)",
+      "{",
+      "  let l_t = a_laser.t;",
+      "  if (a_laser.pos)",
+      "  {",
+      "    let l_jump = MATH.dist(a_laser.pos.x, a_laser.pos.y, a_first.x, a_first.y);",
+      "    l_t += l_jump / a_timing_ms.jump_speed * 1000.0 + jump_delay_ms(a_timing_ms, l_jump);",
+      "  }",
+      "",
+      "  // getExposureLength: total length with laser on (mm).",
+      "  // getSkipLength / getSkipCount: total length and number of the",
+      "  // jumps between the vectors of a hatch (0 for contours and open",
+      "  // polylines, which are marked without interruption).",
+      "  let l_mode = a_path.getPolylineMode();",
+      "  l_t += a_path.getExposureLength() / a_speed * 1000.0;",
+      "  let l_skip_count = a_path.getSkipCount();",
+      "  if (l_skip_count > 0)",
+      "  {",
+      "    let l_skip_len = a_path.getSkipLength();",
+      "    l_t += l_skip_len / a_timing_ms.jump_speed * 1000.0;",
+      "    // Only the total skip length is known, not every single jump, so",
+      "    // the delay is taken for the mean jump length. This is exact while",
+      "    // all jumps are shorter than the length limit (the delay is linear",
+      "    // there) or the scaling is off; otherwise it is a slight",
+      "    // overestimate. Reading every jump would cost far more time.",
+      "    l_t += l_skip_count * jump_delay_ms(a_timing_ms, l_skip_len / l_skip_count);",
+      "  }",
+      "  l_t += get_mark_delay_count(l_mode, a_path.getPointCount()) * a_timing_ms.mark_delay_ms;",
+      "",
+      "  // A closed contour ends where it started.",
+      "  a_laser.pos = (l_mode === POLY_IT.nPolyClosed) ? a_first : a_last;",
+      "  a_laser.t = l_t;",
+      "}"
+     ],
+     "marks": [
+      6,
+      25,
+      27
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lasers",
+   "title": "One clock per laser",
+   "scene": {
+    "mode": "time"
+   },
+   "notes": [
+    "<code>estimate_layer_time_ms</code> walks through the paths in their final exposure order. Each path counts for the laser in its <code>laser_index</code> attribute: every laser has its own clock and its own last position, because the lasers work at the same time.",
+    "The layer is finished when the slowest laser is finished, so the result is the maximum, not the sum. With a single laser every path counts for laser 0."
+   ],
+   "ranges": [
+    {
+     "file": "lib/time/exposure_time.js",
+     "start": 259,
+     "end": 280,
+     "lines": [
+      "exports.estimate_layer_time_ms = function(a_model_data, a_layer_nr, a_timing, a_speed_lookup)",
+      "{",
+      "  let l_timing_ms = to_timing_ms(a_timing);",
+      "  let l_lasers = new Map();",
+      "",
+      "  // nLayerExposureInProcessingOrder: iterate in the order written by",
+      "  // the exposure sorter ('_processing_order').",
+      "  let l_it = a_model_data.getFirstLayerPolyline(a_layer_nr, POLY_IT.nLayerExposureInProcessingOrder);",
+      "  while (l_it.isValid())",
+      "  {",
+      "    let l_count = l_it.getPointCount();",
+      "    if (l_count > 0)",
+      "    {",
+      "      let l_laser = get_laser_state(l_lasers, l_it.getAttributeIntExt(ATTR.LASER_INDEX));",
+      "      let l_table = a_speed_lookup ? a_speed_lookup[l_it.getModelIndex()] : undefined;",
+      "      add_path_time(l_laser, l_it, l_it.getXYCoord(0), l_it.getXYCoord(l_count - 1),",
+      "        get_speed(l_it, l_table), l_timing_ms);",
+      "    }",
+      "    l_it.next();",
+      "  }",
+      "  return max_laser_time(l_lasers);",
+      "};"
+     ],
+     "marks": [
+      5,
+      7,
+      13,
+      20
+     ]
+    },
+    {
+     "file": "lib/time/exposure_time.js",
+     "start": 221,
+     "end": 226,
+     "lines": [
+      "function max_laser_time(a_lasers)",
+      "{",
+      "  let r_max = 0.0;",
+      "  a_lasers.forEach(function(a_laser) { r_max = Math.max(r_max, a_laser.t); });",
+      "  return r_max;",
+      "}"
+     ],
+     "marks": [
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sum",
+   "title": "From the layers to the build",
+   "scene": {
+    "mode": "time"
+   },
+   "notes": [
+    "The layer times are calculated in parallel, after the sorting, the laser assignment and the power optimization, and stored as tray attributes, one per layer. A single-threaded step adds them up into <code>built_time_estimation_ms</code>, the attribute the host reads.",
+    "The export writes the total into <code>export_info.json</code> as <code>estimated_exposure_time_ms</code>. Recoating and acceleration are not included: it is the time the lasers need, not the build time of the machine."
+   ],
+   "ranges": [
+    {
+     "file": "main/postprocess.js",
+     "start": 550,
+     "end": 555,
+     "lines": [
+      "    // d) Time of the layer in the final order. Tray attributes store",
+      "    //    text, so the number is converted to a string; one attribute per",
+      "    //    layer in whole ms, e.g. 'layer_built_time_estimation_ms_12'",
+      "    //    (name read by the host applications).",
+      "    let l_ms = EXPOSURE_TIME.estimate_layer_time_ms(modelData, n, l_timing, l_speed_lookup);",
+      "    modelData.setTrayAttrib(TRAY_ATTR.LAYER_TIME_PREFIX + n, Math.round(l_ms).toString());"
+     ],
+     "marks": [
+      4
+     ]
+    },
+    {
+     "file": "main/postprocess.js",
+     "start": 680,
+     "end": 692,
+     "lines": [
+      "function step_finish_st(modelData, progress, layer_start_nr, layer_end_nr, input_results)",
+      "{",
+      "  let l_sum = 0.0;",
+      "  for (let n = layer_start_nr; n <= layer_end_nr; ++n)",
+      "  {",
+      "    // Layers without a stored time (e.g. step 2 was cancelled) give NaN",
+      "    // and are not added.",
+      "    let l_v = parseFloat(modelData.getTrayAttrib(TRAY_ATTR.LAYER_TIME_PREFIX + n));",
+      "    if (MATH.is_finite_number(l_v)) l_sum += l_v;",
+      "  }",
+      "  // Total in whole ms ('built_time_estimation_ms', read by the host",
+      "  // applications); export_main.js writes it to export_info.json.",
+      "  modelData.setTrayAttrib(TRAY_ATTR.BUILD_TIME, Math.round(l_sum).toString());"
+     ],
+     "marks": [
+      12
+     ]
+    },
+    {
+     "file": "main/export_main.js",
+     "start": 274,
+     "end": 295,
+     "lines": [
+      "function build_export_info(a_ctx)",
+      "{",
+      "  let l_md = a_ctx.model_data;",
+      "  // Total exposure time of post-processing step 3 (text in ms). It is",
+      "  // missing if post-processing did not run; then null is written.",
+      "  let l_time = parseFloat(l_md.getTrayAttrib(TRAY_ATTR.BUILD_TIME));",
+      "  // Tip: 'process' is not available in every script engine, so check it first.",
+      "  let l_engine = ((typeof process !== 'undefined') && process.version) ? process.version : 'unknown';",
+      "  return {",
+      "    project: S_PROJECT_NAME,",
+      "    project_version: S_PROJECT_VERSION,",
+      "    processor_version: l_engine,",
+      "    filter_id: a_ctx.filter_id,",
+      "    export_date: new Date().toISOString(),",
+      "    layer_count: a_ctx.layer_count,",
+      "    // getLayerThickness() is given in Z units, getZUnit() = Z units per",
+      "    // mm, so the quotient is the layer thickness in mm.",
+      "    layer_thickness_mm: l_md.getLayerThickness() / l_md.getZUnit(),",
+      "    estimated_exposure_time_ms: MATH.is_finite_number(l_time) ? l_time : null,",
+      "    model_count: l_md.getModelCount()",
+      "  };",
+      "}"
+     ],
+     "marks": [
+      5,
+      18
+     ]
+    }
+   ]
+  },
+  {
+   "id": "power",
+   "title": "The same rules in the power optimization",
+   "scene": {
+    "mode": "vector",
+    "length": 0.5
+   },
+   "notes": [
+    "The power optimization converts its two vector lengths into return times with <code>reference_time_ms</code>: marking, mark delay, the jump of one hatch distance and its jump delay, scaled like every other jump. For a 0.5 mm vector that is 0.42 ms of marking and 0.07 ms of delays and jump.",
+    "Both reference times contain the same delays, and the return time of a vector contains them as well: the delays move both ends of the power range together with the vectors."
+   ],
+   "ranges": [
+    {
+     "file": "lib/power/power_model.js",
+     "start": 101,
+     "end": 108,
+     "lines": [
+      "exports.reference_time_ms = function(a_len, a_speed, a_hatch_dist, a_timing)",
+      "{",
+      "  // length / speed gives seconds; * 1000 -> ms. Delays: us / 1000 -> ms.",
+      "  return a_len / a_speed * 1000.0 +",
+      "    a_timing.mark_delay_us / 1000.0 +",
+      "    a_hatch_dist / a_timing.jump_speed * 1000.0 +",
+      "    DELAYS.jump_delay_us(a_timing, a_hatch_dist) / 1000.0;",
+      "};"
+     ],
+     "marks": [
+      4,
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lsr",
+   "title": "The time column of the LSR export",
+   "scene": {
+    "mode": "vector",
+    "length": 2
+   },
+   "notes": [
+    "The LSR writer keeps its own clock: every real jump adds jump time and the scaled jump delay, every edge its marking time. The mark delay follows every hatch line and the last edge of a polyline. The start time of each vector is written as the last column of the file."
+   ],
+   "ranges": [
+    {
+     "file": "lib/export/lsr_writer.js",
+     "start": 115,
+     "end": 121,
+     "lines": [
+      "function add_jump(a_state, a_x, a_y)",
+      "{",
+      "  if (!a_state.pos) return;",
+      "  let l_jump = MATH.dist(a_state.pos.x, a_state.pos.y, a_x, a_y);",
+      "  a_state.t_s += l_jump / a_state.timing.jump_speed;",
+      "  a_state.t_s += DELAYS.jump_delay_us(a_state.timing, l_jump) * 1e-6;",
+      "}"
+     ],
+     "marks": [
+      5
+     ]
+    },
+    {
+     "file": "lib/export/lsr_writer.js",
+     "start": 133,
+     "end": 167,
+     "lines": [
+      "function make_record_lines(a_rec, a_z_mm, a_state)",
+      "{",
+      "  let r_lines = [];",
+      "  let l_speed = (a_rec.speed > 0.0) ? a_rec.speed : S_FALLBACK_SPEED;",
+      "  let l_c = a_rec.coords;",
+      "  // Values that are the same for every line of the record are formatted once.",
+      "  let l_z = fmt(a_z_mm);",
+      "  let l_tail = ' ' + fmt(a_rec.focus) + ' ' + fmt(l_speed) + ' ';",
+      "  let l_mark_delay_s = a_state.timing.mark_delay_us * 1e-6;",
+      "",
+      "  for (let k = 0; k < a_rec.edges.length; ++k)",
+      "  {",
+      "    let l_e = a_rec.edges[k];",
+      "    let l_x0 = l_c[2 * l_e.a];",
+      "    let l_y0 = l_c[2 * l_e.a + 1];",
+      "    let l_x1 = l_c[2 * l_e.b];",
+      "    let l_y1 = l_c[2 * l_e.b + 1];",
+      "",
+      "    // The start time of this vector includes the jump to its start point.",
+      "    add_jump(a_state, l_x0, l_y0);",
+      "    r_lines.push(fmt(l_e.power) + ' 0 0 -1 ' +",
+      "      fmt(l_x0) + ' ' + fmt(l_y0) + ' ' + l_z + ' ' +",
+      "      fmt(l_x1) + ' ' + fmt(l_y1) + ' ' + l_z +",
+      "      l_tail + fmt(a_state.t_s) + '\\n');",
+      "    a_state.t_s += MATH.dist(l_x0, l_y0, l_x1, l_y1) / l_speed;",
+      "",
+      "    // A hatch line is a vector of its own; a polyline is one vector.",
+      "    if ((a_rec.kind === 'hatch') || (k === a_rec.edges.length - 1))",
+      "    {",
+      "      a_state.t_s += l_mark_delay_s;",
+      "    }",
+      "    a_state.pos = { x: l_x1, y: l_y1 };",
+      "  }",
+      "  return r_lines;",
+      "}"
+     ],
+     "marks": [
+      19,
+      27,
+      29
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "scanner",
+   "title": "The timing of your scanner",
+   "why": "The defaults are typical values. With the delays of your machine the estimate gets closer to the real exposure time.",
+   "result": "New profiles start with a mark delay of 120 µs. Set the new profile as platform profile, rebuild and export: <code>export_info.json</code> holds the new estimate.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 279,
+     "before": "FACTORY.add_real(laser_timing_group, text, 'mark_delay', 0.0, 100000.0, 10.0, 'unit_us');",
+     "after": "FACTORY.add_real(laser_timing_group, text, 'mark_delay', 0.0, 100000.0, 120.0, 'unit_us');"
+    }
+   ]
+  },
+  {
+   "id": "scaling",
+   "title": "Shorter delays for short jumps",
+   "why": "Your scanner controller scales the jump delay with the jump length, typically below about 1 mm.",
+   "result": "The 0.1 mm jumps between hatch lines wait 14 µs instead of 50 µs. On the hatch plate that saves 468 × 36 µs ≈ 17 ms per layer, about 1.7 s for 100 layers; try it in the <b>Jump delay</b> view of the explainer.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 281,
+     "before": "FACTORY.add_real(laser_timing_group, text, 'min_jump_delay', 0.0, 100000.0, 0.0, 'unit_us');",
+     "after": "FACTORY.add_real(laser_timing_group, text, 'min_jump_delay', 0.0, 100000.0, 10.0, 'unit_us');"
+    },
+    {
+     "file": "main/param_groups.js",
+     "line": 282,
+     "before": "FACTORY.add_real(laser_timing_group, text, 'jump_length_limit', 0.0, 1000.0, 0.0, 'unit_mm');",
+     "after": "FACTORY.add_real(laser_timing_group, text, 'jump_length_limit', 0.0, 1000.0, 1.0, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "jump",
+   "title": "A slower jump speed",
+   "why": "Machines with heavy mirrors jump slower; on parts with many islands the jumps then add up.",
+   "result": "New profiles assume 3000 mm/s for jumps. Try it in the explainer: on the hatch plate the jumps are only 0.1 mm long, so the estimate barely changes.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 278,
+     "before": "FACTORY.add_real(laser_timing_group, text, 'jump_speed', 1.0, 100000.0, 7000.0, 'unit_mm_s');",
+     "after": "FACTORY.add_real(laser_timing_group, text, 'jump_speed', 1.0, 100000.0, 3000.0, 'unit_mm_s');"
+    }
+   ]
+  },
+  {
+   "id": "delays",
+   "title": "No jump delay for hatch jumps",
+   "why": "Some scanners skip the settling time on the short jump to the next hatch line. The estimate then only counts the delay of real jumps between paths.",
+   "result": "The estimate drops by one jump delay per jump inside a hatch block. The explainer's model of the hatch plate gives 468 × 50 µs ≈ 23 ms per layer, about 2.3 s for 100 layers.",
+   "atu": [
+    "compile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/time/exposure_time.js",
+     "line": 207,
+     "before": "    l_t += l_skip_count * jump_delay_ms(a_timing_ms, l_skip_len / l_skip_count);",
+     "after": "    // no jump delay for the short jumps between the vectors of a hatch block"
+    }
+   ]
+  }
+ ]
+}

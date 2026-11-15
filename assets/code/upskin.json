@@ -1,0 +1,301 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "section",
+    "z": 1.98
+   },
+   "notes": [
+    "Upskin is off by default. Its group has only two values of its own, <code>min_width</code> and <code>overlap</code>, plus a complete hatch sub-group with a smaller hatch distance of 0.08 mm.",
+    "<i>Single layer</i> in the comment is the key point: only the next layer above is compared, so each top surface gets exactly one layer of upskin."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 225,
+     "end": 233,
+     "lines": [
+      "// 7. Upskin (single layer)",
+      "// Off by default. Only the next layer above is compared: an area that",
+      "// is not covered there is upskin (top surface). min_width and overlap",
+      "// as for the downskin.",
+      "var upskin_group = FACTORY.create_top_level_group('grp_upskin', text, FLAGS.OPT_OFF);",
+      "FACTORY.add_real(upskin_group, text, 'min_width', 0.0, 10.0, 0.1, 'unit_mm');",
+      "FACTORY.add_real(upskin_group, text, 'overlap', 0.0, 5.0, 0.1, 'unit_mm');",
+      "FACTORY.create_hatch_group(upskin_group, 'grp_hatch_upskin', text,",
+      "  { hatch_distance: 0.08 }, FLAGS.DEF, exports.PART_PATTERN_KEYS, true);"
+     ],
+     "marks": [
+      2,
+      4,
+      5,
+      6,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "mode": "section",
+    "z": 1.98
+   },
+   "notes": [
+    "<code>part.upskin</code> holds the switch, both distances and a complete HATCH object read by <code>read_hatch</code>: pattern, hatch distance, rotation and the rest, exactly as for the volume hatch."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 263,
+     "end": 267,
+     "lines": [
+      "    upskin: {",
+      "      enabled: G.upskin_group.isGrpEnabled(),",
+      "      min_width: G.upskin_group.getParamVal('min_width'),",
+      "      overlap: G.upskin_group.getParamVal('overlap'),",
+      "      hatch: READ.read_hatch(G.upskin_group.getChildGrp('grp_hatch_upskin'), G.PART_PATTERN_KEYS)"
+     ],
+     "marks": [
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "title": "Find the upskin area",
+   "scene": {
+    "mode": "section",
+    "z": 1.98
+   },
+   "notes": [
+    "<code>splitSkin</code> is a builtin of the island: it returns the part of the current layer that the layer above does not cover. On the step block that is the whole step at z = 1.98 mm, because the next layer (2.01 mm) is above the step top.",
+    "Downskin wins where both apply: <code>process_part_island</code> subtracts the downskin from the upskin."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/skin_split.js",
+     "start": 114,
+     "end": 120,
+     "lines": [
+      "exports.split_upskin_one_layer = function(a_island, a_cfg)",
+      "{",
+      "  let l_us = new ISLAND.bsIsland();",
+      "  // splitSkin uses the current layer of makeExposureLayer implicitly.",
+      "  a_island.splitSkin(l_us);",
+      "  return ISL.opening(l_us, a_cfg.min_width, a_island);",
+      "};"
+     ],
+     "marks": [
+      3,
+      4,
+      5
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 506,
+     "end": 507,
+     "lines": [
+      "  let l_us = l_part.upskin.enabled ? SKIN.split_upskin_one_layer(a_island, l_part.upskin) : ISL.empty();",
+      "  if (!l_us.isEmpty() && !l_ds.isEmpty()) l_us = ISL.subtract(l_us, l_ds);"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "minwidth",
+   "title": "Drop thin slivers",
+   "scene": {
+    "mode": "slope",
+    "angle": 30,
+    "minWidth": 0.1
+   },
+   "notes": [
+    "<code>ISL.opening</code> removes everything narrower than <code>min_width</code>. Why that matters: on a sloped top, each layer sticks out by only t / tan(angle) beyond the next one, 52 µm at 30°. Without the opening every layer would get a narrow upskin strip of very short vectors.",
+    "With the default 0.1 mm, slopes steeper than about 17° get no upskin strips at all."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/skin_split.js",
+     "start": 104,
+     "end": 110,
+     "lines": [
+      " * Upskin area of an island.",
+      " * splitSkin compares only with the next layer above (single-layer",
+      " * upskin by design).",
+      " * Like the downskin, thin slivers (narrower than min_width, mm) are",
+      " * removed; along sloped top walls the single-layer comparison would",
+      " * otherwise produce a thin upskin strip in every layer.",
+      " * @param {bsIsland} a_island  Island (not modified)"
+     ],
+     "marks": [
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "overlap",
+   "title": "Grow into the volume, then hatch",
+   "scene": {
+    "mode": "top",
+    "z": 1.98,
+    "overlap": 0.1
+   },
+   "notes": [
+    "<code>process_part_hatches</code> grows the upskin by <code>overlap</code>, clips it to the hatch area and removes it from the volume. The two hatches overlap at their joint instead of leaving a gap.",
+    "On the left this gives 7.99 × 9.78 mm of upskin at 0.08 mm: about 977 mm of yellow vectors, and ATU reports 976.78 mm for that layer. The volume hatch drops from 2326 mm to 1544 mm."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 439,
+     "end": 447,
+     "lines": [
+      "  // The skin areas are grown by their 'overlap' (mm) before they are",
+      "  // clipped to the hatch area. The skin hatch then reaches a little into",
+      "  // the neighboring volume, which bonds both areas and avoids a gap at",
+      "  // the border between them.",
+      "  let l_ds_area = a_isl_info.ds.isEmpty() ? ISL.empty() :",
+      "    ISL.intersect(ISL.offset(a_isl_info.ds, l_part.overhang.overlap), l_area);",
+      "  let l_us_area = a_us.isEmpty() ? ISL.empty() :",
+      "    ISL.subtract(ISL.intersect(ISL.offset(a_us, l_part.upskin.overlap), l_area), l_ds_area);",
+      "  let l_vol_area = ISL.subtract(ISL.subtract(l_area, l_ds_area), l_us_area);"
+     ],
+     "marks": [
+      7,
+      8
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 466,
+     "end": 466,
+     "lines": [
+      "  hatch_area(a_ctx, a_result, l_us_area, l_part.upskin.hatch, BSID.hatch_upskin, l_id, l_b, false);"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Laser settings and order",
+   "scene": {
+    "mode": "top",
+    "z": 6.0
+   },
+   "notes": [
+    "The upskin hatch (BSID 520) runs at 220 W and 900 mm/s, slower than the volume hatch (280 W, 1200 mm/s): with the smaller hatch distance that melts the top surface more thoroughly. Scan order 50 puts it after the volume and core hatches.",
+    "On the top layer of the block (z = 6 mm) the whole area is upskin and the volume hatch disappears."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 115,
+     "end": 115,
+     "lines": [
+      "  make_entry('hatch_upskin',        520, 'none',             false, 220,  900, 50, [255, 230,   0]),"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "on",
+   "title": "Upskin on by default",
+   "why": "Most of your parts have visible top surfaces.",
+   "result": "New profiles start with the upskin switched on. Untick <b>Upskin</b> in <b>Try it</b> to compare.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 229,
+     "before": "var upskin_group = FACTORY.create_top_level_group('grp_upskin', text, FLAGS.OPT_OFF);",
+     "after": "var upskin_group = FACTORY.create_top_level_group('grp_upskin', text, FLAGS.OPT_ON);"
+    }
+   ]
+  },
+  {
+   "id": "minwidth",
+   "title": "Upskin also on shallow slopes",
+   "why": "A slightly sloped top surface should get its upskin strips as well.",
+   "result": "Strips from 50 µm are kept: slopes up to about 31° get an upskin strip on every layer. Try it in the Sloped top view.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 230,
+     "before": "FACTORY.add_real(upskin_group, text, 'min_width', 0.0, 10.0, 0.1, 'unit_mm');",
+     "after": "FACTORY.add_real(upskin_group, text, 'min_width', 0.0, 10.0, 0.05, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "overlap",
+   "title": "More overlap with the volume",
+   "why": "A visible seam between the upskin and the volume hatch.",
+   "result": "The yellow hatch reaches 0.2 mm into the volume. Drag <b>Overlap</b> in the Top view.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 231,
+     "before": "FACTORY.add_real(upskin_group, text, 'overlap', 0.0, 5.0, 0.1, 'unit_mm');",
+     "after": "FACTORY.add_real(upskin_group, text, 'overlap', 0.0, 5.0, 0.2, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "speed",
+   "title": "Slower upskin",
+   "why": "Even more energy for a smoother top surface.",
+   "result": "Upskin default 800 mm/s. For one profile, change Scanning › Upskin hatch › speed in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 115,
+     "before": "  make_entry('hatch_upskin',        520, 'none',             false, 220,  900, 50, [255, 230,   0]),",
+     "after": "  make_entry('hatch_upskin',        520, 'none',             false, 220,  800, 50, [255, 230,   0]),"
+    }
+   ]
+  }
+ ]
+}

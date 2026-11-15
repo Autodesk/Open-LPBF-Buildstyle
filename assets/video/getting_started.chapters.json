@@ -1,0 +1,117 @@
+{
+ "duration": 242.47,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Get the buildstyle: clone the repository"
+  },
+  {
+   "t": 7.0,
+   "caption": "In ATU: File › Open › Project…"
+  },
+  {
+   "t": 15.6,
+   "caption": "Select OSS_MPBF_01.fsp"
+  },
+  {
+   "t": 27.23,
+   "caption": "Compile: the Build Style Log reports success"
+  },
+  {
+   "t": 39.07,
+   "caption": "View › Data Management › Input Geometry Files"
+  },
+  {
+   "t": 48.73,
+   "caption": "Load… and select an STL file"
+  },
+  {
+   "t": 56.37,
+   "caption": "Import geometry: layer thickness 30 µm"
+  },
+  {
+   "t": 66.37,
+   "caption": "The hatch plate is a build part, Part (solid)"
+  },
+  {
+   "t": 72.95,
+   "caption": "Exposure Preview › Manage Profiles…: default is read-only"
+  },
+  {
+   "t": 81.21,
+   "caption": "Duplicate… it and name the copy"
+  },
+  {
+   "t": 93.01,
+   "caption": "Assign Profiles…: the copy for the part"
+  },
+  {
+   "t": 108.76,
+   "caption": "Platform Parameter: the same profile"
+  },
+  {
+   "t": 118.42,
+   "caption": "Execute in the toolbar"
+  },
+  {
+   "t": 121.96,
+   "caption": "Layer range: bottom to top layer, then OK"
+  },
+  {
+   "t": 131.09,
+   "caption": "Build: the Exposure Preview shows the layers"
+  },
+  {
+   "t": 139.03,
+   "caption": "Volume hatch of layer 50: meander lines"
+  },
+  {
+   "t": 142.03,
+   "caption": "Open Profile › your profile"
+  },
+  {
+   "t": 148.33,
+   "caption": "Hatching › Volume: set the pattern to Chessboard"
+  },
+  {
+   "t": 159.56,
+   "caption": "Execute and OK again"
+  },
+  {
+   "t": 166.54,
+   "caption": "Rebuilt: chessboard hatch"
+  },
+  {
+   "t": 170.05,
+   "caption": "Export: Execute once more"
+  },
+  {
+   "t": 173.55,
+   "caption": "Tick Export Data and keep a filter, here LSR"
+  },
+  {
+   "t": 183.41,
+   "caption": "Select Export Target…: file name of the package"
+  },
+  {
+   "t": 195.63,
+   "caption": "OK: build and write the package"
+  },
+  {
+   "t": 204.54,
+   "caption": "One ZIP: toolpath, parameters, build job image"
+  },
+  {
+   "t": 210.54,
+   "caption": "Project Explorer › main › param_groups.js"
+  },
+  {
+   "t": 220.7,
+   "caption": "Parameters with min, max and default value"
+  },
+  {
+   "t": 235.47,
+   "caption": "Where the code is"
+  }
+ ]
+}

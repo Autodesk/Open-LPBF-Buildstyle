@@ -1,0 +1,53 @@
+{
+ "duration": 54.92,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Overhang bracket: a flat shelf, a 30° and a 60° underside"
+  },
+  {
+   "t": 5.09,
+   "caption": "Before: the shelf layer is all volume hatch (green)"
+  },
+  {
+   "t": 6.69,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 9.41,
+   "caption": "Switch on “Multi-layer overhang (downskin)”"
+  },
+  {
+   "t": 15.72,
+   "caption": "Surface angle and reference layers define downskin"
+  },
+  {
+   "t": 22.15,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 23.35,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 24.67,
+   "caption": "After: the shelf rests on powder and gets downskin (blue)"
+  },
+  {
+   "t": 30.8,
+   "caption": "30° underside: a narrow downskin strip along the edge"
+  },
+  {
+   "t": 37.99,
+   "caption": "60° underside is steeper than 45°: no downskin"
+  },
+  {
+   "t": 40.99,
+   "caption": "Layer by layer in 3D: blue starts at the shelf"
+  },
+  {
+   "t": 49.4,
+   "caption": "Downskin hatch sits exactly under the overhang"
+  }
+ ]
+}

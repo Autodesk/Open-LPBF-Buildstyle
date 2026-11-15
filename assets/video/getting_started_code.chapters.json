@@ -1,0 +1,17 @@
+{
+ "duration": 31.93,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Project Explorer › main › param_groups.js"
+  },
+  {
+   "t": 10.16,
+   "caption": "Parameters with min, max and default value"
+  },
+  {
+   "t": 24.93,
+   "caption": "Where the code is"
+  }
+ ]
+}

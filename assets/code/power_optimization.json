@@ -1,0 +1,529 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "curve",
+    "on": true
+   },
+   "notes": [
+    "Every part hatch group (volume, core, downskin, upskin) gets an optional child group <i>Power optimization</i>. It is off by default (<code>FLAGS.OPT_OFF</code>), which is why the video switches it from off to on.",
+    "The defaults sit in <code>TABLE_DEFAULTS</code>: 150 W for vectors of 0.5 mm and shorter, 280 W for vectors of 10 mm and longer, no segment splitting."
+   ],
+   "ranges": [
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 151,
+     "end": 155,
+     "lines": [
+      "  // T5 power optimization",
+      "  // Power range in W; vector lengths in mm that are converted to the",
+      "  // return times for minimum and maximum power.",
+      "  min_power: 150.0, max_power: 280.0, min_vector_length: 0.5, max_vector_length: 10.0,",
+      "  segment_splitting: false, microvector_length: 0.5, merge_equal_power: true,"
+     ],
+     "marks": [
+      3
+     ]
+    },
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 478,
+     "end": 492,
+     "lines": [
+      "exports.create_power_opt_group = function(a_parent_grp, a_group_id, a_text, a_defaults, a_flags)",
+      "{",
+      "  let l_grp = create_child(a_parent_grp, a_group_id, a_text, choose_flags(a_flags, exports.FLAGS.OPT_OFF));",
+      "  exports.add_real(l_grp, a_text, 'min_power', 0.0, 2000.0, get_default(a_defaults, 'min_power'), 'unit_w');",
+      "  exports.add_real(l_grp, a_text, 'max_power', 0.0, 2000.0, get_default(a_defaults, 'max_power'), 'unit_w');",
+      "  exports.add_real(l_grp, a_text, 'min_vector_length', 0.01, 1000.0,",
+      "    get_default(a_defaults, 'min_vector_length'), 'unit_mm');",
+      "  exports.add_real(l_grp, a_text, 'max_vector_length', 0.01, 1000.0,",
+      "    get_default(a_defaults, 'max_vector_length'), 'unit_mm');",
+      "  exports.add_bool(l_grp, a_text, 'segment_splitting', get_default(a_defaults, 'segment_splitting'));",
+      "  exports.add_real(l_grp, a_text, 'microvector_length', 0.05, 10.0,",
+      "    get_default(a_defaults, 'microvector_length'), 'unit_mm');",
+      "  exports.add_bool(l_grp, a_text, 'merge_equal_power', get_default(a_defaults, 'merge_equal_power'));",
+      "  return l_grp;",
+      "};"
+     ],
+     "marks": [
+      2,
+      3,
+      7,
+      8
+     ]
+    },
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 575,
+     "end": 577,
+     "lines": [
+      "  if (a_with_power_opt === true)",
+      "  {",
+      "    exports.create_power_opt_group(l_grp, exports.CHILD_ID.POWER_OPT, a_text, a_defaults);"
+     ],
+     "marks": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read and check the settings",
+   "scene": {
+    "mode": "curve",
+    "on": true
+   },
+   "notes": [
+    "<code>read_power_opt</code> turns the group into a plain object. Note the renaming: the parameters <code>min_vector_length</code> / <code>max_vector_length</code> become <code>min_length</code> / <code>max_length</code>.",
+    "The validation refuses a range that is not ascending: the power is interpolated from the short to the long vectors, so the minimum must stay below the maximum for both powers and lengths. The sliders in <b>Try it</b> keep that rule, too."
+   ],
+   "ranges": [
+    {
+     "file": "lib/params/param_readers.js",
+     "start": 291,
+     "end": 306,
+     "lines": [
+      "exports.read_power_opt = function(a_grp)",
+      "{",
+      "  // Only 'enabled' is needed when the group is missing: consumers skip",
+      "  // the power optimization completely in that case.",
+      "  if (!is_group(a_grp)) return { enabled: false };",
+      "  return {",
+      "    enabled: a_grp.isGrpEnabled(),",
+      "    min_power: a_grp.getParamVal('min_power'),",
+      "    max_power: a_grp.getParamVal('max_power'),",
+      "    min_length: a_grp.getParamVal('min_vector_length'),",
+      "    max_length: a_grp.getParamVal('max_vector_length'),",
+      "    segment_splitting: a_grp.getParamVal('segment_splitting'),",
+      "    microvector_length: a_grp.getParamVal('microvector_length'),",
+      "    merge_equal_power: a_grp.getParamVal('merge_equal_power')",
+      "  };",
+      "};"
+     ],
+     "marks": [
+      6,
+      9,
+      10
+     ]
+    },
+    {
+     "file": "main/settings.js",
+     "start": 410,
+     "end": 421,
+     "lines": [
+      "  let l_po = a_hatch.power_opt;",
+      "  // Power optimization: the power is interpolated between min_power",
+      "  // (short vectors) and max_power (long vectors), so both ranges must",
+      "  // be in ascending order, and micro vectors need a length > 0.",
+      "  if (l_po && l_po.enabled)",
+      "  {",
+      "    if (!(l_po.min_power < l_po.max_power))",
+      "      a_errors.push(a_name + ': minimum power must be smaller than maximum power');",
+      "    if (!(l_po.min_length < l_po.max_length))",
+      "      a_errors.push(a_name + ': vector length for minimum power must be smaller than for maximum power');",
+      "    if (!(l_po.microvector_length > 0))",
+      "      a_errors.push(a_name + ': segment length must be greater than 0');"
+     ],
+     "marks": [
+      6,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "map",
+   "title": "Which vector types are optimized",
+   "scene": {
+    "mode": "wedge",
+    "on": true
+   },
+   "notes": [
+    "<code>build_power_opt_map</code> collects the hatch types whose power optimization is on, keyed by BSID. Contours and supports never take part: the model is made for parallel hatch vectors one hatch distance apart.",
+    "The model needs two more values per type: the hatch distance and the mark speed from the Scanning group (1200 mm/s for the volume hatch)."
+   ],
+   "ranges": [
+    {
+     "file": "main/postprocess.js",
+     "start": 241,
+     "end": 262,
+     "lines": [
+      "function build_power_opt_map(a_part)",
+      "{",
+      "  let r_map = new Map();",
+      "  let l_list = [",
+      "    { bsid: BSID.hatch_volume, hatch: a_part.hatching.volume },",
+      "    { bsid: BSID.hatch_core, hatch: a_part.hatching.core },",
+      "    { bsid: BSID.hatch_downskin, hatch: a_part.overhang.hatch },",
+      "    { bsid: BSID.hatch_upskin, hatch: a_part.upskin.hatch }",
+      "  ];",
+      "  for (let i = 0; i < l_list.length; ++i)",
+      "  {",
+      "    let l_h = l_list[i].hatch;",
+      "    if (!l_h || !l_h.power_opt || !l_h.power_opt.enabled) continue;",
+      "    let l_scan = a_part.scanning[String(l_list[i].bsid)];",
+      "    r_map.set(l_list[i].bsid, {",
+      "      power_opt: l_h.power_opt,",
+      "      hatch_distance: l_h.hatch_distance,",
+      "      speed: l_scan.speed",
+      "    });",
+      "  }",
+      "  return r_map;",
+      "}"
+     ],
+     "marks": [
+      4,
+      5,
+      6,
+      7,
+      12,
+      17
+     ]
+    },
+    {
+     "file": "main/postprocess.js",
+     "start": 276,
+     "end": 289,
+     "lines": [
+      "function build_laser_power_opt_map(a_part, a_laser_count)",
+      "{",
+      "  let r_map = build_power_opt_map(a_part);",
+      "  // Copy of the keys first: the map is extended inside the loop.",
+      "  let l_type_bsids = Array.from(r_map.keys());",
+      "  for (let l = 0; l < a_laser_count; ++l)",
+      "  {",
+      "    for (let i = 0; i < l_type_bsids.length; ++i)",
+      "    {",
+      "      r_map.set(LASER_BSID.make_laser_bsid(l_type_bsids[i], l), r_map.get(l_type_bsids[i]));",
+      "    }",
+      "  }",
+      "  return r_map;",
+      "}"
+     ],
+     "marks": [
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "when",
+   "title": "In the post-processing, after sorting and lasers",
+   "scene": {
+    "mode": "wedge",
+    "on": true
+   },
+   "notes": [
+    "The power is set in the multi-threaded post-processing step, layer by layer. It runs <i>after</i> the exposure sorting and the laser assignment, so it sees the vectors in the order the lasers really scan them. The time estimate comes last, because micro vectors change the paths.",
+    "With laser assignment on, the paths carry laser BSIDs (2500 = volume hatch on laser 1). <code>build_laser_power_opt_map</code> maps them to the same settings object as their vector type."
+   ],
+   "ranges": [
+    {
+     "file": "main/postprocess.js",
+     "start": 534,
+     "end": 548,
+     "lines": [
+      "    // a) Exposure order of all paths of the layer (all models).",
+      "    SORTER.sort_layer(modelData, n, l_sorter_cfg);",
+      "",
+      "    // b) Laser of every path (multi-laser machines, if enabled). A",
+      "    //    problem in one layer is reported and the layer keeps the",
+      "    //    lasers of its vector types; the other layers go on.",
+      "    if (l_assign_cfg)",
+      "    {",
+      "      let l_res = LASER_ASSIGNMENT.assign_layer(modelData, n, l_assign_cfg);",
+      "      if (!l_res.ok) LOG.warning_once('pp_laser_assignment', l_res.message + ' (layer ' + n + ')');",
+      "    }",
+      "",
+      "    // c) Power per hatch vector along the timeline of every laser",
+      "    //    (rebuilds the paths of the changed model layers).",
+      "    POWER_OPT.optimize_layer(modelData, n, l_power_maps, l_timing);"
+     ],
+     "marks": [
+      1,
+      8,
+      14
+     ]
+    }
+   ]
+  },
+  {
+   "id": "timeline",
+   "title": "One timeline per laser",
+   "scene": {
+    "mode": "wedge",
+    "on": true
+   },
+   "notes": [
+    "<code>collect_blocks</code> takes the optimized hatch blocks of all parts in processing order. <code>group_timelines</code> puts the blocks with the same laser and the same settings object on one timeline; <code>optimize_timeline</code> computes the powers along it and gives every block its own vectors back.",
+    "So with segment splitting a segment also sees the block the same laser exposed just before. Without splitting the result is the same as per block: the power depends only on the length of the vector."
+   ],
+   "ranges": [
+    {
+     "file": "lib/power/power_optimization.js",
+     "start": 240,
+     "end": 264,
+     "lines": [
+      "function group_timelines(a_items)",
+      "{",
+      "  let r_groups = [];",
+      "  for (let i = 0; i < a_items.length; ++i)",
+      "  {",
+      "    let l_item = a_items[i];",
+      "    let l_group = undefined;",
+      "    for (let g = 0; g < r_groups.length; ++g)",
+      "    {",
+      "      let l_first = r_groups[g][0];",
+      "      if ((l_first.laser === l_item.laser) && (l_first.cfg === l_item.cfg))",
+      "      {",
+      "        l_group = r_groups[g];",
+      "        break;",
+      "      }",
+      "    }",
+      "    if (!l_group)",
+      "    {",
+      "      l_group = [];",
+      "      r_groups.push(l_group);",
+      "    }",
+      "    l_group.push(l_item);",
+      "  }",
+      "  return r_groups;",
+      "}"
+     ],
+     "marks": [
+      10
+     ]
+    },
+    {
+     "file": "lib/power/power_optimization.js",
+     "start": 281,
+     "end": 282,
+     "lines": [
+      "  let l_pieces = POWER_MODEL.split_hatch_segments_grouped(l_segments, l_cfg.power_opt,",
+      "    l_cfg.speed, l_cfg.hatch_distance, a_timing);"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "model",
+   "title": "Vector length → return time → power",
+   "scene": {
+    "mode": "curve",
+    "on": true
+   },
+   "notes": [
+    "<code>reference_time_ms</code> is the time until the laser is back next to the start of a vector: marking time, mark delay, the jump of one hatch distance and its jump delay (scaled down for short jumps if jump delay scaling is on). A 0.5 mm vector at 1200 mm/s comes back after 0.49 ms, a 10 mm vector after 8.4 ms.",
+    "<code>power_from_time</code> converts the two lengths of the dialog into these two times and interpolates linearly between them. Below the short time the power stays at the minimum, above the long time at the maximum: the bend points of the curve on the left."
+   ],
+   "ranges": [
+    {
+     "file": "lib/power/power_model.js",
+     "start": 101,
+     "end": 108,
+     "lines": [
+      "exports.reference_time_ms = function(a_len, a_speed, a_hatch_dist, a_timing)",
+      "{",
+      "  // length / speed gives seconds; * 1000 -> ms. Delays: us / 1000 -> ms.",
+      "  return a_len / a_speed * 1000.0 +",
+      "    a_timing.mark_delay_us / 1000.0 +",
+      "    a_hatch_dist / a_timing.jump_speed * 1000.0 +",
+      "    DELAYS.jump_delay_us(a_timing, a_hatch_dist) / 1000.0;",
+      "};"
+     ],
+     "marks": [
+      3,
+      6
+     ]
+    },
+    {
+     "file": "lib/power/power_model.js",
+     "start": 135,
+     "end": 153,
+     "lines": [
+      "exports.power_from_time = function(a_t_ms, a_cfg, a_speed, a_hatch_dist, a_timing)",
+      "{",
+      "  // No heated neighbor: the material is cold, use the full power.",
+      "  // Rounded like every other result: merge_equal_pieces compares the",
+      "  // powers exactly.",
+      "  if (a_t_ms === Infinity) return MATH.round_to(a_cfg.max_power, S_POWER_STEP);",
+      "",
+      "  let l_t_lo = exports.reference_time_ms(a_cfg.min_length, a_speed, a_hatch_dist, a_timing);",
+      "  let l_t_hi = exports.reference_time_ms(a_cfg.max_length, a_speed, a_hatch_dist, a_timing);",
+      "  // l_f is the position between t_lo (0.0) and t_hi (1.0). If the range",
+      "  // is empty or inverted (invalid settings), the full power is used.",
+      "  let l_f = 1.0;",
+      "  if (l_t_hi > l_t_lo)",
+      "  {",
+      "    l_f = MATH.clamp((a_t_ms - l_t_lo) / (l_t_hi - l_t_lo), 0.0, 1.0);",
+      "  }",
+      "  let l_p = a_cfg.min_power + l_f * (a_cfg.max_power - a_cfg.min_power);",
+      "  return MATH.round_to(l_p, S_POWER_STEP);",
+      "};"
+     ],
+     "marks": [
+      14,
+      16
+     ]
+    }
+   ]
+  },
+  {
+   "id": "apply",
+   "title": "One power per vector",
+   "scene": {
+    "mode": "wedge",
+    "on": true
+   },
+   "notes": [
+    "Without segment splitting every vector gets the power of its own length. <code>set_vector_powers</code> writes it as an edge attribute at the start point of the vector; the geometry stays the same.",
+    "That is what the video shows: on the wedge the vectors get shorter towards the tip, so their colour runs from yellow (280 W) to purple (150 W)."
+   ],
+   "ranges": [
+    {
+     "file": "lib/power/power_model.js",
+     "start": 356,
+     "end": 368,
+     "lines": [
+      "  if (a_cfg.segment_splitting !== true)",
+      "  {",
+      "    // One power per vector, from the time the vector itself needs.",
+      "    for (let k = 0; k < a_segments.length; ++k)",
+      "    {",
+      "      let l_s = a_segments[k];",
+      "      let l_t = exports.reference_time_ms(l_info[k].len, a_speed, a_hatch_dist, a_timing);",
+      "      r_out.push([{",
+      "        x0: l_s.x0, y0: l_s.y0, x1: l_s.x1, y1: l_s.y1,",
+      "        power: exports.power_from_time(l_t, a_cfg, a_speed, a_hatch_dist, a_timing)",
+      "      }]);",
+      "    }",
+      "    return r_out;"
+     ],
+     "marks": [
+      6,
+      9
+     ]
+    },
+    {
+     "file": "lib/power/power_optimization.js",
+     "start": 116,
+     "end": 122,
+     "lines": [
+      "function set_vector_powers(a_block, a_pieces)",
+      "{",
+      "  for (let j = 0; j < a_pieces.length; ++j)",
+      "  {",
+      "    a_block.setPointAttributeReal(2 * j, ATTR.POWER, a_pieces[j].power, true);",
+      "  }",
+      "}"
+     ],
+     "marks": [
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "title": "Optional: micro vectors",
+   "scene": {
+    "mode": "curve",
+    "on": true
+   },
+   "notes": [
+    "With <i>segment splitting</i> each vector is cut into pieces of the micro vector length. For every piece the real return time to the previous vector on the laser timeline is measured, so the power can change along one vector, for example in an L-shaped island. Neighbouring pieces with the same power are merged again."
+   ],
+   "ranges": [
+    {
+     "file": "lib/power/power_model.js",
+     "start": 293,
+     "end": 303,
+     "lines": [
+      "      // Only the directly preceding vector is checked: it is the most",
+      "      // recent heat source next to this piece.",
+      "      let l_proj = project_on_segment(l_qx, l_qy, a_segments[a_k - 1], a_info[a_k - 1].len);",
+      "      if (l_proj.dist <= S_NEIGHBOUR_FACTOR * a_hatch_dist)",
+      "      {",
+      "        l_interval = l_t_q - (a_info[a_k - 1].t_start + l_proj.s / a_speed * 1000.0);",
+      "      }",
+      "      else",
+      "      {",
+      "        // No neighbor nearby: the area is cold.",
+      "        l_interval = Infinity;"
+     ],
+     "marks": [
+      2,
+      5
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "on",
+   "title": "Power optimization on by default",
+   "why": "Every new profile then lowers the power on short hatch vectors without a click in the dialog.",
+   "result": "The group starts switched on for all four part hatch types. Existing profiles keep their setting.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 577,
+     "before": "    exports.create_power_opt_group(l_grp, exports.CHILD_ID.POWER_OPT, a_text, a_defaults);",
+     "after": "    exports.create_power_opt_group(l_grp, exports.CHILD_ID.POWER_OPT, a_text, a_defaults, exports.FLAGS.OPT_ON);"
+    }
+   ]
+  },
+  {
+   "id": "range",
+   "title": "A gentler reduction",
+   "why": "If 150 W is too little for your material, keep more power on the short vectors.",
+   "result": "The shortest vectors get 200 W instead of 150 W. Try it with the Minimum power slider in the explainer first.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 154,
+     "before": "  min_power: 150.0, max_power: 280.0, min_vector_length: 0.5, max_vector_length: 10.0,",
+     "after": "  min_power: 200.0, max_power: 280.0, min_vector_length: 0.5, max_vector_length: 10.0,"
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "title": "Micro vectors by default",
+   "why": "Islands with mixed vector lengths, where the return time changes along a vector.",
+   "result": "Hatch vectors are cut into pieces of 0.5 mm, each with its own power. The number of vectors in the layer grows, so the export files get larger.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 155,
+     "before": "  segment_splitting: false, microvector_length: 0.5, merge_equal_power: true,",
+     "after": "  segment_splitting: true, microvector_length: 0.5, merge_equal_power: true,"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tutorials · Open LPBF Buildstyle for Autodesk Fusion</title>
+  <link rel="stylesheet" href="assets/css/site.css?v=20261115f">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="index.html">Open LPBF Buildstyle<span>for Autodesk Fusion</span></a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="tutorials.html" class="current">Tutorials</a>
+      <a href="partners.html">Partners</a>
+      <a href="features/getting_started.html">Getting started</a>
+      <a href="features/build_with_ai.html">Build with AI</a>
+    </nav>
+  </header>
+
+  <section class="page-head">
+    <h1>Tutorials</h1>
+    <p>Every feature of the buildstyle has its own page: a short video shows how to use it in Advanced Toolpath
+      Utility (ATU), an interactive model explains what it does, and a code walkthrough shows how it is made.</p>
+  </section>
+
+  <div class="start-link">
+    <a href="features/getting_started.html"><img src="assets/video/getting_started.jpg" alt="The ATU window with the buildstyle project open"><span><b>New here? Getting started with the buildstyle</b><small>Get the project, open and compile it in ATU, load a part, assign a profile, build, change a parameter and export: the whole workflow in eight short videos.</small></span></a>
+    <a href="features/build_with_ai.html"><span class="badge" aria-hidden="true">AI</span><span><b>Build with AI: change the buildstyle with your assistant</b><small>Open the buildstyle in Cursor or Claude Code, let the assistant explain and change the code, and check the result in ATU.</small></span></a>
+  </div>
+
+  <h2 class="section-title">Build part parameters</h2>
+  <div class="grid">
+    <a class="tile" href="features/hull_core.html"><img src="assets/video/hull_core.jpg" alt="Hull ring around the darker core hatch in the ATU Exposure Preview"><div class="t"><b>Hull and core</b><small>Splits the part volume into an outer hull and an inner core with its own hatching.</small></div></a>
+    <a class="tile" href="features/first_border.html"><img src="assets/video/first_border.jpg" alt="Border block with its first border in the ATU Exposure Preview"><div class="t"><b>First border (beam compensation)</b><small>Outermost contour of every island, shifted inwards by the beam compensation.</small></div></a>
+    <a class="tile" href="features/following_borders.html"><img src="assets/video/following_borders.jpg" alt="Chamfer of the contour plate with three following borders in the ATU Exposure Preview"><div class="t"><b>Following borders</b><small>Additional contours (2nd to N-th border) inside the first border.</small></div></a>
+    <a class="tile" href="features/fill_contours.html"><img src="assets/video/fill_contours.jpg" alt="Thin tab filled with orange fill contours in the ATU Exposure Preview"><div class="t"><b>Fill contours</b><small>Contours between the borders and the hatching.</small></div></a>
+    <a class="tile" href="features/hatching.html"><img src="assets/video/hatching.jpg" alt="Chessboard hatch in the ATU Exposure Preview"><div class="t"><b>Hatching</b><small>Hatching of the part volume: meander, stripe, chess, hexagon and offset patterns.</small></div></a>
+    <a class="tile" href="features/downskin.html"><img src="assets/video/downskin.jpg" alt="Downskin shelf in the ATU 3D view"><div class="t"><b>Multi-layer overhang (downskin)</b><small>Areas without enough solid material below are exposed with downskin settings.</small></div></a>
+    <a class="tile" href="features/upskin.html"><img src="assets/video/upskin.jpg" alt="Yellow upskin hatch on the step block in the ATU Exposure Preview"><div class="t"><b>Upskin (one layer)</b><small>Areas that are not covered by the next layer are exposed with upskin settings.</small></div></a>
+    <a class="tile" href="features/wall_supports.html"><img src="assets/video/wall_supports.jpg" alt="Grey wall support lines in the ATU Exposure Preview"><div class="t"><b>Wall supports</b><small>Exposure of supports that consist of open lines.</small></div></a>
+    <a class="tile" href="features/solid_supports.html"><img src="assets/video/solid_supports.jpg" alt="Offset rings in a support pillar in the ATU Exposure Preview"><div class="t"><b>Solid supports</b><small>Exposure of supports that consist of areas.</small></div></a>
+    <a class="tile" href="features/scanning.html"><img src="assets/video/scanning.jpg" alt="Scanning group of the parameter profile in ATU"><div class="t"><b>Scanning</b><small>Laser, power, speed and focus of every vector type.</small></div></a>
+    <a class="tile" href="features/power_optimization.html"><img src="assets/video/power_optimization.jpg" alt="Triangle coloured by laser power in the ATU Exposure Preview, darker in the narrow corners"><div class="t"><b>Power optimization</b><small>Lower laser power for short hatch vectors, where the heat has no time to spread.</small></div></a>
+    <a class="tile" href="features/contour_options.html"><img src="assets/video/contour_options.jpg" alt="Dashed red border next to the green hatch in the ATU Exposure Preview"><div class="t"><b>Contour options</b><small>Where every contour starts, and stippled (dashed) contours.</small></div></a>
+    <a class="tile" href="features/hatch_rotation.html"><img src="assets/video/hatch_rotation.jpg" alt="Volume hatch lines of one layer in the ATU Exposure Preview"><div class="t"><b>Hatch rotation and limitation window</b><small>Turns the hatch from layer to layer and can keep the lines away from the gas flow direction.</small></div></a>
+    <a class="tile" href="features/layer_skip.html"><img src="assets/video/layer_skip.jpg" alt="Edge of the cylinder with its red first border in the ATU Exposure Preview"><div class="t"><b>Layer skip</b><small>Exposes a contour, hatch or support type only on every n-th layer.</small></div></a>
+  </div>
+
+  <h2 class="section-title">Platform parameters</h2>
+  <div class="grid">
+    <a class="tile" href="features/laser_timing.html"><img src="assets/video/laser_timing.jpg" alt="Laser timing group of the platform parameters in the ATU profile dialog"><div class="t"><b>Laser timing</b><small>Jump speed and delays of the scanner, used for the time estimate, the LSR export and the power optimization.</small></div></a>
+    <a class="tile" href="features/build_order.html"><img src="assets/video/build_order.jpg" alt="Island grid coloured by exposure order in the ATU Exposure Preview, half exposed"><div class="t"><b>Build order, scanning order and gas flow</b><small>Order in which models, islands and vector types are exposed, downstream first.</small></div></a>
+    <a class="tile" href="features/multi_laser.html"><img src="assets/video/multi_laser_parts.jpg" alt="Thirteen parts in four laser colours in the ATU Exposure Preview"><div class="t"><b>Multi-laser</b><small>Scanner array and load balancing: the parts of a layer are shared between the lasers so all lasers finish together.</small></div></a>
+    <a class="tile" href="features/export_formats.html"><img src="assets/video/export_formats.jpg" alt="Format list of the ATU Execute dialog with the six export filters of the buildstyle"><div class="t"><b>Export formats</b><small>LSR, CLI+ and 3MF toolpath packages for the machine, with parameters and build job image.</small></div></a>
+  </div>
+
+  <footer>Open LPBF Buildstyle for Autodesk Fusion documentation</footer>
+</body>
+</html>

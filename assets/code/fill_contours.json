@@ -1,0 +1,315 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "top",
+    "view": "plate",
+    "fill": 2
+   },
+   "notes": [
+    "Fill contours are off by default. Switched on, there are two rings, 0.1 mm apart. Unlike the following borders, <code>alternate_per_contour</code> is on: neighbouring fill rings run in opposite directions.",
+    "The count goes up to 50: enough rings to fill a thin region completely, without any hatch."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 176,
+     "end": 185,
+     "lines": [
+      "// 4. Fill contours",
+      "// Off by default. Extra concentric rings inside the borders (default 2,",
+      "// 0.1 mm apart), between the borders and the hatch.",
+      "var fill_contour_group = FACTORY.create_top_level_group('grp_fill_contour', text, FLAGS.OPT_OFF);",
+      "FACTORY.add_int(fill_contour_group, text, 'fill_contour_count', 1, 50, 2, '');",
+      "FACTORY.add_real(fill_contour_group, text, 'first_offset', 0.0, 5.0, 0.1, 'unit_mm');",
+      "FACTORY.add_real(fill_contour_group, text, 'following_offset', 0.0, 5.0, 0.1, 'unit_mm');",
+      "FACTORY.add_bool(fill_contour_group, text, 'alternate_per_layer', true);",
+      "FACTORY.add_bool(fill_contour_group, text, 'alternate_per_contour', true);",
+      "add_contour_children(fill_contour_group);"
+     ],
+     "marks": [
+      3,
+      4,
+      5,
+      6,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "mode": "top",
+    "view": "plate",
+    "fill": 5
+   },
+   "notes": [
+    "The group becomes <code>part.fill_contour</code>, with the same fields as the following borders. That is why one function can create both."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 234,
+     "end": 243,
+     "lines": [
+      "    fill_contour: {",
+      "      enabled: l_fc.isGrpEnabled(),",
+      "      count: l_fc.getParamVal('fill_contour_count'),",
+      "      first_offset: l_fc.getParamVal('first_offset'),",
+      "      following_offset: l_fc.getParamVal('following_offset'),",
+      "      alternate_per_layer: l_fc.getParamVal('alternate_per_layer'),",
+      "      alternate_per_contour: l_fc.getParamVal('alternate_per_contour'),",
+      "      layer_skip: l_fc_children.layer_skip,",
+      "      stipple: l_fc_children.stipple,",
+      "      start_point: l_fc_children.start_point"
+     ],
+     "marks": [
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "insets",
+   "title": "The rings continue inside the borders",
+   "scene": {
+    "mode": "top",
+    "view": "plate",
+    "fill": 5
+   },
+   "notes": [
+    "<code>compute_insets</code> starts the fill contours at the innermost ring so far: the first border at 0.06 mm when the following borders are off. Five rings land at 0.16, 0.26, 0.36, 0.46 and 0.56 mm.",
+    "The hatch moves with them: 0.56 + 0.05 = 0.61 mm. Everything narrower than 1.22 mm gets rings only."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 267,
+     "end": 276,
+     "lines": [
+      "  // Fill contours continue inside the innermost border.",
+      "  if (l_fc.enabled)",
+      "  {",
+      "    let l_base = l_innermost;",
+      "    for (let j = 0; j < l_fc.count; ++j)",
+      "    {",
+      "      l_innermost = l_base + l_fc.first_offset + j * l_fc.following_offset;",
+      "      r_ins.fill.push(l_innermost);",
+      "    }",
+      "  }"
+     ],
+     "marks": [
+      3,
+      6
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 284,
+     "end": 284,
+     "lines": [
+      "  r_ins.hatch = l_innermost + a_part.hatching.hatch_offset;"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "thin",
+   "title": "Thin regions: rings instead of hatch",
+   "scene": {
+    "mode": "top",
+    "view": "tab",
+    "fill": 5
+   },
+   "notes": [
+    "In the 1 mm tab, half the width is 0.5 mm. The rings at 0.16 to 0.46 mm still fit, the one at 0.56 mm and the hatch at 0.61 mm do not: the offset of the island is empty there.",
+    "That matches the Exposure Preview: the hatch now ends at x = 17.68 mm and the tab, which starts at x = 18 mm, is filled with orange rings only."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 350,
+     "end": 361,
+     "lines": [
+      "function process_contour_rings(a_ctx, a_island, a_result, a_cfg, a_insets, a_bsid, a_bsid_ds, a_split, a_isl_info)",
+      "{",
+      "  if (!a_cfg.enabled || !LAYER_SKIP.is_active(a_ctx.layer_index, a_cfg.layer_skip)) return;",
+      "  let l_split_info = { islid: a_isl_info.islid, bounds: a_isl_info.bounds, ds: a_isl_info.ds, split: a_split };",
+      "  for (let i = 0; i < a_insets.length; ++i)",
+      "  {",
+      "    // The ring is empty if the island is too small for this inset;",
+      "    // emit_contour then does nothing.",
+      "    let l_res = CONTOURS.make_contour_hatch(a_island, a_insets[i]);",
+      "    emit_contour(a_ctx, a_result, l_res.hatch, a_cfg, i, a_bsid, a_bsid_ds, l_split_info);",
+      "  }",
+      "}"
+     ],
+     "marks": [
+      6,
+      7,
+      8,
+      9
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 520,
+     "end": 521,
+     "lines": [
+      "  process_contour_rings(a_ctx, a_island, a_result, l_part.fill_contour, l_insets.fill,",
+      "    BSID.fill_contour, BSID.fill_contour_ds, l_fill_split, l_isl_info);"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hatch",
+   "title": "The hatch area shrinks",
+   "scene": {
+    "mode": "section",
+    "fill": 5
+   },
+   "notes": [
+    "<code>process_part_hatches</code> offsets the island by the hatch inset. Every extra ring shrinks that area all around; if it becomes empty, there is no hatch at all, as in the section through the tab."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 432,
+     "end": 437,
+     "lines": [
+      "function process_part_hatches(a_ctx, a_island, a_result, a_insets, a_isl_info, a_us)",
+      "{",
+      "  let l_part = a_ctx.part;",
+      "  // Area inside the innermost contour ring (plus hatch offset).",
+      "  let l_area = ISL.offset(a_island, -a_insets.hatch);",
+      "  if (l_area.isEmpty()) return;"
+     ],
+     "marks": [
+      4,
+      5
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Laser settings and order",
+   "scene": {
+    "mode": "section",
+    "fill": 5
+   },
+   "notes": [
+    "Fill contours (BSID 300) run at 200 W and 1000 mm/s, closer to the hatch than to the borders. Scan order 60 exposes them right after the hatches and before the borders."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 110,
+     "end": 111,
+     "lines": [
+      "  make_entry('fill_contour',        300, 'fill_contour',     false, 200, 1000, 60, [255, 140,   0]),",
+      "  make_entry('fill_contour_ds',     301, 'fill_contour',     true,  110, 1000, 61, [255, 190, 100]),"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "on",
+   "title": "Fill contours on by default",
+   "why": "Your parts have many thin ribs that should be filled with rings.",
+   "result": "New profiles start with two fill rings at 0.16 and 0.26 mm; the hatch then starts at 0.31 mm.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 179,
+     "before": "var fill_contour_group = FACTORY.create_top_level_group('grp_fill_contour', text, FLAGS.OPT_OFF);",
+     "after": "var fill_contour_group = FACTORY.create_top_level_group('grp_fill_contour', text, FLAGS.OPT_ON);"
+    }
+   ]
+  },
+  {
+   "id": "count",
+   "title": "More rings by default",
+   "why": "Ribs up to about 1.2 mm should be filled with rings only.",
+   "result": "Five rings, as in the video. Set Fill contours to 5 in <b>Try it</b> and look at the tab.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 180,
+     "before": "FACTORY.add_int(fill_contour_group, text, 'fill_contour_count', 1, 50, 2, '');",
+     "after": "FACTORY.add_int(fill_contour_group, text, 'fill_contour_count', 1, 50, 5, '');"
+    }
+   ]
+  },
+  {
+   "id": "spacing",
+   "title": "Closer fill rings",
+   "why": "A ring spacing of 0.1 mm leaves only 20 µm overlap with a 0.12 mm track.",
+   "result": "The fill rings are 0.08 mm apart (the first stays 0.1 mm inside the border). Compare the overlap in the Section view.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 182,
+     "before": "FACTORY.add_real(fill_contour_group, text, 'following_offset', 0.0, 5.0, 0.1, 'unit_mm');",
+     "after": "FACTORY.add_real(fill_contour_group, text, 'following_offset', 0.0, 5.0, 0.08, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "speed",
+   "title": "Faster fill contours",
+   "why": "Fill contours inside the part do not form the surface; they can use hatch-like settings.",
+   "result": "Fill contour default 240 W at 1200 mm/s. For one profile, change Scanning › Fill contour in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 110,
+     "before": "  make_entry('fill_contour',        300, 'fill_contour',     false, 200, 1000, 60, [255, 140,   0]),",
+     "after": "  make_entry('fill_contour',        300, 'fill_contour',     false, 240, 1200, 60, [255, 140,   0]),"
+    }
+   ]
+  }
+ ]
+}

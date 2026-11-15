@@ -1,0 +1,644 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "filters",
+   "title": "Six filters in one table",
+   "scene": {
+    "mode": "lsr"
+   },
+   "notes": [
+    "<code>S_FILTERS</code> lists every filter with its format, its file extension and two switches: <code>per_layer</code> for the ZIP formats and <code>with_ramps</code> for 3MF. The order of the table is the order in the Execute dialog.",
+    "ATU asks for the filters through the entry point <code>declareExportFilter</code>. The id must stay the same in every language; only the name is localized."
+   ],
+   "ranges": [
+    {
+     "file": "main/export_main.js",
+     "start": 104,
+     "end": 111,
+     "lines": [
+      "var S_FILTERS = Object.freeze([",
+      "  { id: S_filter_lsr_single, name_key: 'filter_lsr_single', ext: 'zip', format: 'lsr', per_layer: false, with_ramps: false },",
+      "  { id: S_filter_lsr_layers, name_key: 'filter_lsr_layers', ext: 'zip', format: 'lsr', per_layer: true, with_ramps: false },",
+      "  { id: S_filter_cli_single, name_key: 'filter_cli_single', ext: 'zip', format: 'cli', per_layer: false, with_ramps: false },",
+      "  { id: S_filter_cli_layers, name_key: 'filter_cli_layers', ext: 'zip', format: 'cli', per_layer: true, with_ramps: false },",
+      "  { id: S_filter_3mf_ramps, name_key: 'filter_3mf_ramps', ext: '3mf', format: '3mf', per_layer: false, with_ramps: true },",
+      "  { id: S_filter_3mf_edges, name_key: 'filter_3mf_edges', ext: '3mf', format: '3mf', per_layer: false, with_ramps: false }",
+      "]);"
+     ],
+     "marks": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    },
+    {
+     "file": "main/export_main.js",
+     "start": 590,
+     "end": 604,
+     "lines": [
+      "exports.declare_export_filters = function(a_ef)",
+      "{",
+      "  for (let i = 0; i < S_FILTERS.length; ++i)",
+      "  {",
+      "    let l_f = S_FILTERS[i];",
+      "    a_ef.declareFilterEx({",
+      "      sFilterId: l_f.id,",
+      "      sFilterName: LOCALIZER.GetMessage(l_f.name_key),",
+      "      sFilterExtension: l_f.ext,",
+      "      nVersionMajor: 1,",
+      "      nVersionMinor: 0,",
+      "      isMultifile: false",
+      "    });",
+      "  }",
+      "};"
+     ],
+     "marks": [
+      5,
+      6,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "dispatch",
+   "title": "One export, one file",
+   "scene": {
+    "mode": "cli"
+   },
+   "notes": [
+    "ATU opens the target file and calls <code>exportToFile</code> with the selected filter id. <code>export_to_file</code> refuses to write a package without calculated toolpaths, reads the platform parameters fresh (the laser timing is needed for the LSR time column) and hands over to the writer of the format."
+   ],
+   "ranges": [
+    {
+     "file": "main/export_main.js",
+     "start": 615,
+     "end": 641,
+     "lines": [
+      "exports.export_to_file = function(a_file, a_filter_id, a_model_data, a_progress)",
+      "{",
+      "  let l_filter = find_filter(a_filter_id);",
+      "  if (!l_filter) return { ok: false, message: 'Unsupported export filter ' + a_filter_id };",
+      "",
+      "  // Refuse to write a package without calculated toolpaths.",
+      "  let l_check = check_toolpaths_calculated(a_model_data);",
+      "  if (!l_check.ok) return l_check;",
+      "",
+      "  // Platform parameters may be read in the export (laser timing for the",
+      "  // LSR time column); part settings come from the model attributes.",
+      "  let l_platform = SETTINGS.read_platform_settings();",
+      "  let l_ctx = build_export_context(a_model_data, l_platform, a_filter_id, a_progress);",
+      "",
+      "  if (l_filter.format === 'lsr') return export_lsr_zip(l_ctx, a_file, l_filter.per_layer);",
+      "  if (l_filter.format === 'cli') return export_cli_zip(l_ctx, a_file, l_filter.per_layer);",
+      "  if (l_filter.format === '3mf')",
+      "  {",
+      "    // The 3MF writer needs the attachments BEFORE it writes the package",
+      "    // (the image is referenced as thumbnail), so they are built here.",
+      "    // The ZIP formats add them at the end (finish_zip).",
+      "    l_ctx.attachments = build_attachments(l_ctx);",
+      "    return TP3MF.export_3mf(l_ctx, a_file, l_filter.with_ramps);",
+      "  }",
+      "  // Only reached if S_FILTERS contains a format without a branch above.",
+      "  return { ok: false, message: 'Unsupported export filter ' + a_filter_id };",
+      "};"
+     ],
+     "marks": [
+      6,
+      14,
+      15,
+      16
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Every path becomes a PathRecord",
+   "scene": {
+    "mode": "lsr",
+    "split": true,
+    "pick": 2
+   },
+   "notes": [
+    "All three writers read the layer the same way: <code>read_layer_paths</code> walks the exposure in processing order, so the file keeps the order in which the machine exposes the paths.",
+    "Every path becomes a record with its parameter set (BSID), laser, speed, focus, coordinates and one power per edge. The power optimization writes a power per point; if any edge differs from the nominal power, <code>has_power_variation</code> lets the writers switch from the short constant form to the long form."
+   ],
+   "ranges": [
+    {
+     "file": "lib/export/toolpath_reader.js",
+     "start": 272,
+     "end": 301,
+     "lines": [
+      "  let l_edges = [];",
+      "  let l_variation = false;",
+      "  let l_pairs = make_edge_pairs(l_kind, l_coords, l_count);",
+      "  for (let k = 0; k < l_pairs.length; ++k)",
+      "  {",
+      "    let l_a = l_pairs[k][0];",
+      "    let l_b = l_pairs[k][1];",
+      "    if (edge_length(l_coords, l_a, l_b) < S_MIN_EDGE_LENGTH) continue;",
+      "    let l_p = get_edge_power(a_poly, l_a, l_nominal);",
+      "    // Remember if any edge differs from the nominal power, so the",
+      "    // writers can use the short \"constant power\" form otherwise.",
+      "    if (Math.abs(l_p - l_nominal) > S_POWER_TOL) l_variation = true;",
+      "    l_edges.push({ a: l_a, b: l_b, power: l_p });",
+      "  }",
+      "  if (l_edges.length === 0) return undefined;",
+      "",
+      "  return {",
+      "    model_index: l_model_index,",
+      "    subtype: a_poly.getModelSubtype(),",
+      "    bsid: l_bsid,",
+      "    laser_index: l_laser_index,",
+      "    speed: get_real_value(a_poly, ATTR.SPEED, l_entry, 'speed', 0.0),",
+      "    focus: get_real_value(a_poly, ATTR.FOCUS, l_entry, 'focus', 0.0),",
+      "    nominal_power: l_nominal,",
+      "    kind: l_kind,",
+      "    // Only closed paths can be inner loops (contours around holes).",
+      "    is_inloop: (l_kind === 'closed') ? (a_poly.isInloop() === true) : false,",
+      "    coords: l_coords,",
+      "    edges: l_edges,",
+      "    has_power_variation: l_variation"
+     ],
+     "marks": [
+      8,
+      11
+     ]
+    },
+    {
+     "file": "lib/export/toolpath_reader.js",
+     "start": 317,
+     "end": 328,
+     "lines": [
+      "exports.read_layer_paths = function(a_model_data, a_layer_nr, a_lookup)",
+      "{",
+      "  let r_records = [];",
+      "  let l_it = a_model_data.getFirstLayerPolyline(a_layer_nr, POLY_IT.nLayerExposureInProcessingOrder);",
+      "  while (l_it.isValid())",
+      "  {",
+      "    let l_rec = read_record(l_it, a_lookup);",
+      "    if (l_rec) r_records.push(l_rec);",
+      "    l_it.next();",
+      "  }",
+      "  return r_records;",
+      "};"
+     ],
+     "marks": [
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lsr",
+   "title": "LSR: one line per vector",
+   "scene": {
+    "mode": "lsr",
+    "pick": 1
+   },
+   "notes": [
+    "<code>make_record_lines</code> writes power, direction, start and end point, focus, speed and the start time. Every number goes through <code>fmt</code>: 9 significant digits without trailing zeros. Point powers come from ATU as 32-bit floats, so 150.6 W shows up as <code>150.600006</code>.",
+    "In a single file the clock runs on from layer to layer; in a file per layer <code>reset_time</code> starts every file at 0."
+   ],
+   "ranges": [
+    {
+     "file": "lib/export/lsr_writer.js",
+     "start": 73,
+     "end": 76,
+     "lines": [
+      "function fmt(a_v)",
+      "{",
+      "  return Number(a_v.toPrecision(9)).toString();",
+      "}"
+     ],
+     "marks": [
+      2
+     ]
+    },
+    {
+     "file": "lib/export/lsr_writer.js",
+     "start": 133,
+     "end": 167,
+     "lines": [
+      "function make_record_lines(a_rec, a_z_mm, a_state)",
+      "{",
+      "  let r_lines = [];",
+      "  let l_speed = (a_rec.speed > 0.0) ? a_rec.speed : S_FALLBACK_SPEED;",
+      "  let l_c = a_rec.coords;",
+      "  // Values that are the same for every line of the record are formatted once.",
+      "  let l_z = fmt(a_z_mm);",
+      "  let l_tail = ' ' + fmt(a_rec.focus) + ' ' + fmt(l_speed) + ' ';",
+      "  let l_mark_delay_s = a_state.timing.mark_delay_us * 1e-6;",
+      "",
+      "  for (let k = 0; k < a_rec.edges.length; ++k)",
+      "  {",
+      "    let l_e = a_rec.edges[k];",
+      "    let l_x0 = l_c[2 * l_e.a];",
+      "    let l_y0 = l_c[2 * l_e.a + 1];",
+      "    let l_x1 = l_c[2 * l_e.b];",
+      "    let l_y1 = l_c[2 * l_e.b + 1];",
+      "",
+      "    // The start time of this vector includes the jump to its start point.",
+      "    add_jump(a_state, l_x0, l_y0);",
+      "    r_lines.push(fmt(l_e.power) + ' 0 0 -1 ' +",
+      "      fmt(l_x0) + ' ' + fmt(l_y0) + ' ' + l_z + ' ' +",
+      "      fmt(l_x1) + ' ' + fmt(l_y1) + ' ' + l_z +",
+      "      l_tail + fmt(a_state.t_s) + '\\n');",
+      "    a_state.t_s += MATH.dist(l_x0, l_y0, l_x1, l_y1) / l_speed;",
+      "",
+      "    // A hatch line is a vector of its own; a polyline is one vector.",
+      "    if ((a_rec.kind === 'hatch') || (k === a_rec.edges.length - 1))",
+      "    {",
+      "      a_state.t_s += l_mark_delay_s;",
+      "    }",
+      "    a_state.pos = { x: l_x1, y: l_y1 };",
+      "  }",
+      "  return r_lines;",
+      "}"
+     ],
+     "marks": [
+      19,
+      20,
+      29
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cli",
+   "title": "CLI+: parameters before every path",
+   "scene": {
+    "mode": "cli",
+    "split": true,
+    "pick": 1
+   },
+   "notes": [
+    "Before every record CLI+ writes the parameter set, the laser (counted from 1), power, speed and focus, so every record can be read on its own.",
+    "<code>$$POWERS</code> only appears when the power changes along the path. It gets a new pair only where the power, rounded to 0.1 W, changes: with segment splitting the hatch of the explainer gets one pair per piece."
+   ],
+   "ranges": [
+    {
+     "file": "lib/export/cli_plus_writer.js",
+     "start": 122,
+     "end": 136,
+     "lines": [
+      "function make_powers_line(a_rec)",
+      "{",
+      "  if (!a_rec.has_power_variation) return '';",
+      "  let l_parts = [];",
+      "  let l_last = undefined;",
+      "  for (let k = 0; k < a_rec.edges.length; ++k)",
+      "  {",
+      "    let l_p = MATH.round_to(a_rec.edges[k].power, 0.1);",
+      "    if (l_p === l_last) continue;",
+      "    let l_index = (a_rec.kind === 'hatch') ? k : a_rec.edges[k].a;",
+      "    l_parts.push(l_index + ',' + l_p.toFixed(1));",
+      "    l_last = l_p;",
+      "  }",
+      "  return '$$POWERS/' + l_parts.join(',') + '\\n';",
+      "}"
+     ],
+     "marks": [
+      7,
+      9,
+      10
+     ]
+    },
+    {
+     "file": "lib/export/cli_plus_writer.js",
+     "start": 146,
+     "end": 154,
+     "lines": [
+      "function make_param_lines(a_rec)",
+      "{",
+      "  return '$$PARAM/bsid,int,' + a_rec.bsid + '\\n' +",
+      "    '$$PARAM/laser_index,int,' + (a_rec.laser_index + 1) + '\\n' +",
+      "    '$$POWER/' + a_rec.nominal_power.toFixed(3) + '\\n' +",
+      "    '$$SPEED/' + a_rec.speed.toFixed(3) + '\\n' +",
+      "    '$$FOCUS/' + a_rec.focus.toFixed(3) + '\\n' +",
+      "    make_powers_line(a_rec);",
+      "}"
+     ],
+     "marks": [
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cli_geometry",
+   "title": "CLI+: hatches and polylines",
+   "scene": {
+    "mode": "cli",
+    "pick": 2
+   },
+   "notes": [
+    "A hatch record is one <code>$$HATCHES</code> line with the label of the part, the number of vectors and their coordinates. A contour is a <code>$$POLYLINE</code>: direction 1 for an outer loop, 0 for a hole, 2 for an open path. A closed contour repeats its first point, as the CLI format requires.",
+    "<code>write_layer</code> writes the <code>$$LAYER</code> line even for an empty layer, so the count matches <code>$$LAYERS</code> in the header."
+   ],
+   "ranges": [
+    {
+     "file": "lib/export/cli_plus_writer.js",
+     "start": 189,
+     "end": 209,
+     "lines": [
+      "function make_polyline_line(a_rec, a_label)",
+      "{",
+      "  let l_c = a_rec.coords;",
+      "  let l_n = l_c.length / 2;",
+      "  let l_v = [];",
+      "  for (let i = 0; i < l_n; ++i) l_v.push(c(l_c[2 * i]), c(l_c[2 * i + 1]));",
+      "",
+      "  if (a_rec.kind !== 'closed')",
+      "  {",
+      "    return '$$POLYLINE/' + a_label + ',2,' + l_n + ',' + l_v.join(',') + '\\n';",
+      "  }",
+      "  let l_dir = a_rec.is_inloop ? 0 : 1;",
+      "  let l_already_closed = MATH.dist(l_c[0], l_c[1], l_c[2 * (l_n - 1)], l_c[2 * (l_n - 1) + 1]) < S_SAME_POINT_TOL;",
+      "  if (l_already_closed)",
+      "  {",
+      "    return '$$POLYLINE/' + a_label + ',' + l_dir + ',' + l_n + ',' + l_v.join(',') + '\\n';",
+      "  }",
+      "  // Append the first point again and count it.",
+      "  l_v.push(c(l_c[0]), c(l_c[1]));",
+      "  return '$$POLYLINE/' + a_label + ',' + l_dir + ',' + (l_n + 1) + ',' + l_v.join(',') + '\\n';",
+      "}"
+     ],
+     "marks": [
+      11,
+      12,
+      13,
+      15,
+      19
+     ]
+    },
+    {
+     "file": "lib/export/cli_plus_writer.js",
+     "start": 222,
+     "end": 232,
+     "lines": [
+      "exports.write_layer = function(a_file, a_z_mm, a_records)",
+      "{",
+      "  a_file.writeString('$$LAYER/' + a_z_mm.toFixed(5) + '\\n');",
+      "  for (let i = 0; i < a_records.length; ++i)",
+      "  {",
+      "    let l_rec = a_records[i];",
+      "    let l_label = l_rec.model_index + 1;",
+      "    let l_geom = (l_rec.kind === 'hatch') ? make_hatches_line(l_rec, l_label) : make_polyline_line(l_rec, l_label);",
+      "    a_file.writeString(make_param_lines(l_rec) + l_geom);",
+      "  }",
+      "};"
+     ],
+     "marks": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ramps",
+   "title": "3MF: power factors and ramps",
+   "scene": {
+    "mode": "3mf",
+    "split": true,
+    "ramps": true,
+    "pick": 3
+   },
+   "notes": [
+    "3MF stores the power as a factor of the maximum power of the profile. Every path becomes exactly one segment, and the factors sit on its children, as the toolpath specification requires: <code>f</code> on every <code>&lt;hatch&gt;</code> line, and on every <code>&lt;point&gt;</code> the factor of the line it closes.",
+    "With ramps, <code>compute_hatch_ramp_powers</code> gives two hatch lines that touch and point the same way the mean power at their common point; they get <code>f1</code> and <code>f2</code>. The micro vectors of segment splitting touch, so the power runs from piece to piece; separate hatch lines do not touch and keep their own power. Without segment splitting nothing touches, and the two 3MF filters write the same file."
+   ],
+   "ranges": [
+    {
+     "file": "lib/export/tp3mf_writer.js",
+     "start": 446,
+     "end": 463,
+     "lines": [
+      "function compute_hatch_ramp_powers(a_rec)",
+      "{",
+      "  let l_n = a_rec.edges.length;",
+      "  let r_pp = { p_start: [], p_end: [] };",
+      "  for (let k = 0; k < l_n; ++k)",
+      "  {",
+      "    r_pp.p_start.push(a_rec.edges[k].power);",
+      "    r_pp.p_end.push(a_rec.edges[k].power);",
+      "  }",
+      "  for (let k = 1; k < l_n; ++k)",
+      "  {",
+      "    if (!edges_touch(a_rec, k - 1, k) || !edges_collinear(a_rec, k - 1, k)) continue;",
+      "    let l_mean = 0.5 * (a_rec.edges[k - 1].power + a_rec.edges[k].power);",
+      "    r_pp.p_end[k - 1] = l_mean;",
+      "    r_pp.p_start[k] = l_mean;",
+      "  }",
+      "  return r_pp;",
+      "}"
+     ],
+     "marks": [
+      11,
+      12,
+      13,
+      14
+     ]
+    },
+    {
+     "file": "lib/export/tp3mf_writer.js",
+     "start": 472,
+     "end": 483,
+     "lines": [
+      "function hatch_body(a_rec, a_max, a_with_ramps)",
+      "{",
+      "  let r_body = [];",
+      "  let l_pp = a_with_ramps ? compute_hatch_ramp_powers(a_rec) : undefined;",
+      "  for (let k = 0; k < a_rec.edges.length; ++k)",
+      "  {",
+      "    let l_p0 = l_pp ? l_pp.p_start[k] : a_rec.edges[k].power;",
+      "    let l_p1 = l_pp ? l_pp.p_end[k] : a_rec.edges[k].power;",
+      "    r_body.push(hatch_element(a_rec, k, make_factor(l_p0, a_max), make_factor(l_p1, a_max)));",
+      "  }",
+      "  return r_body;",
+      "}"
+     ],
+     "marks": [
+      0,
+      3,
+      8
+     ]
+    },
+    {
+     "file": "lib/export/tp3mf_writer.js",
+     "start": 541,
+     "end": 547,
+     "lines": [
+      "function make_segment(a_rec, a_max, a_with_ramps)",
+      "{",
+      "  if (a_rec.kind === 'hatch') return { type: 'hatch', body: hatch_body(a_rec, a_max, a_with_ramps) };",
+      "  // A loop needs at least 3 points; a shorter closed path is written as polyline.",
+      "  if ((a_rec.kind === 'closed') && (a_rec.edges.length >= 3)) return { type: 'loop', body: loop_body(a_rec, a_max) };",
+      "  return { type: 'polyline', body: polyline_body(a_rec, a_max) };",
+      "}"
+     ],
+     "marks": [
+      2,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "package",
+   "title": "What else goes into the package",
+   "scene": {
+    "mode": "cli",
+    "perLayer": true
+   },
+   "notes": [
+    "Every package gets the build job image (a top view of the plate), the platform parameters, the parameters of every part and <code>export_info.json</code>. With these files an exported job can be traced back to the settings it was made with.",
+    "The estimated exposure time in <code>export_info.json</code> is the sum the post-processing stored on the tray; for the power wedge of the video it is 280.57 s, and the time column of the LSR adds up to the same value."
+   ],
+   "ranges": [
+    {
+     "file": "main/export_main.js",
+     "start": 274,
+     "end": 295,
+     "lines": [
+      "function build_export_info(a_ctx)",
+      "{",
+      "  let l_md = a_ctx.model_data;",
+      "  // Total exposure time of post-processing step 3 (text in ms). It is",
+      "  // missing if post-processing did not run; then null is written.",
+      "  let l_time = parseFloat(l_md.getTrayAttrib(TRAY_ATTR.BUILD_TIME));",
+      "  // Tip: 'process' is not available in every script engine, so check it first.",
+      "  let l_engine = ((typeof process !== 'undefined') && process.version) ? process.version : 'unknown';",
+      "  return {",
+      "    project: S_PROJECT_NAME,",
+      "    project_version: S_PROJECT_VERSION,",
+      "    processor_version: l_engine,",
+      "    filter_id: a_ctx.filter_id,",
+      "    export_date: new Date().toISOString(),",
+      "    layer_count: a_ctx.layer_count,",
+      "    // getLayerThickness() is given in Z units, getZUnit() = Z units per",
+      "    // mm, so the quotient is the layer thickness in mm.",
+      "    layer_thickness_mm: l_md.getLayerThickness() / l_md.getZUnit(),",
+      "    estimated_exposure_time_ms: MATH.is_finite_number(l_time) ? l_time : null,",
+      "    model_count: l_md.getModelCount()",
+      "  };",
+      "}"
+     ],
+     "marks": [
+      5,
+      18
+     ]
+    },
+    {
+     "file": "main/export_main.js",
+     "start": 306,
+     "end": 338,
+     "lines": [
+      "function build_attachments(a_ctx)",
+      "{",
+      "  let l_md = a_ctx.model_data;",
+      "  // Top view of the build plate as PNG: at most 1024 pixels, 5 mm margin",
+      "  // around the model bounds. A missing image is only a warning: the",
+      "  // toolpath itself is still complete.",
+      "  let l_image = BUILD_JOB_IMAGE.create_png_temp_file(l_md, {",
+      "    max_pixels: 1024,",
+      "    margin_mm: 5,",
+      "    model_info_attr: MODEL_ATTR.MODEL_INFO",
+      "  });",
+      "  if (!l_image.ok) LOG.warning('Build job image: ' + l_image.message);",
+      "",
+      "  // JSON.stringify(value, null, 2) writes indented, human readable JSON.",
+      "  // One file for the platform, one per model, e.g.",
+      "  // 'parameters/model_001_Bracket.json'.",
+      "  let l_texts = [];",
+      "  l_texts.push({",
+      "    name: 'parameters/platform_parameters.json',",
+      "    text: JSON.stringify(PARAM_JSON.collect_platform(l_md, MODEL_ATTR.PLATFORM_PARAMS_JSON), null, 2)",
+      "  });",
+      "  for (let i = 0; i < l_md.getModelCount(); ++i)",
+      "  {",
+      "    let l_model = l_md.getModel(i);",
+      "    let l_name = sanitize_name(PARAM_JSON.get_model_name(l_model, i));",
+      "    l_texts.push({",
+      "      name: 'parameters/model_' + MATH.pad_int(i + 1, 3) + '_' + l_name + '.json',",
+      "      text: JSON.stringify(PARAM_JSON.collect_model(l_model, i, MODEL_ATTR.PART_PARAMS_JSON, MODEL_ATTR.PART_SETTINGS), null, 2)",
+      "    });",
+      "  }",
+      "  l_texts.push({ name: 'export_info.json', text: JSON.stringify(build_export_info(a_ctx), null, 2) });",
+      "  return { image: l_image, texts: l_texts };",
+      "}"
+     ],
+     "marks": [
+      6,
+      18,
+      26,
+      30
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "lsr_power",
+   "title": "LSR powers rounded to 0.1 W",
+   "why": "The 9 digits of the LSR also show the float noise of the power (150.600006 W). Rounding like CLI+ does makes the file shorter and easier to read.",
+   "result": "Every power in the LSR has at most one decimal. The geometry and the time column do not change.",
+   "atu": [
+    "compile",
+    "export"
+   ],
+   "edits": [
+    {
+     "file": "lib/export/lsr_writer.js",
+     "line": 153,
+     "before": "    r_lines.push(fmt(l_e.power) + ' 0 0 -1 ' +",
+     "after": "    r_lines.push(fmt(MATH.round_to(l_e.power, 0.1)) + ' 0 0 -1 ' +"
+    }
+   ]
+  },
+  {
+   "id": "cli_digits",
+   "title": "CLI+ coordinates in micrometers",
+   "why": "5 decimals are 10 nm, far below what a scanner can reach. With 3 decimals (1 µm) every coordinate is two characters shorter.",
+   "result": "All $$HATCHES and $$POLYLINE coordinates have 3 decimals. Compare the size of toolpath.cli with the package from before.",
+   "atu": [
+    "compile",
+    "export"
+   ],
+   "edits": [
+    {
+     "file": "lib/export/cli_plus_writer.js",
+     "line": 71,
+     "before": "var S_COORD_DIGITS = 5;",
+     "after": "var S_COORD_DIGITS = 3;"
+    }
+   ]
+  },
+  {
+   "id": "zip_level",
+   "title": "Stronger ZIP compression",
+   "why": "Text compresses well. Level 9 makes the LSR and CLI+ packages a bit smaller and the export a bit slower; the files inside stay the same.",
+   "result": "The ZIP packages are written with the strongest compression. The content of every entry is unchanged.",
+   "atu": [
+    "compile",
+    "export"
+   ],
+   "edits": [
+    {
+     "file": "main/export_main.js",
+     "line": 77,
+     "before": "var S_ZIP_LEVEL = 6;",
+     "after": "var S_ZIP_LEVEL = 9;"
+    }
+   ]
+  }
+ ]
+}

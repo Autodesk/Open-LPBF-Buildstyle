@@ -1,0 +1,445 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Two platform groups",
+   "scene": {
+    "parts": "plate",
+    "spacing": 24,
+    "field": 32,
+    "enabled": false
+   },
+   "notes": [
+    "The scanner array and the laser assignment are <i>platform</i> parameters (<code>FLAGS.PLATFORM</code>): they describe the machine, not one part. ATU reads them from the profile that is set as the platform profile.",
+    "The laser assignment is off by default, so a single-laser build is unchanged: every path keeps the laser number of its vector type from <b>Scanning</b>."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 329,
+     "end": 341,
+     "lines": [
+      "var scanner_array_group = FACTORY.create_top_level_group('grp_scanner_array', text, FLAGS.PLATFORM);",
+      "FACTORY.add_real(scanner_array_group, text, 'scanner_center_x', -10000.0, 10000.0, 0.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'scanner_center_y', -10000.0, 10000.0, 0.0, 'unit_mm');",
+      "FACTORY.add_int(scanner_array_group, text, 'scanner_count_x', 1, 16, 2, '');",
+      "FACTORY.add_int(scanner_array_group, text, 'scanner_count_y', 1, 16, 2, '');",
+      "FACTORY.add_real(scanner_array_group, text, 'scanner_spacing_x', 0.0, 10000.0, 125.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'scanner_spacing_y', 0.0, 10000.0, 125.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'scan_field_width', 1.0, 10000.0, 175.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'scan_field_height', 1.0, 10000.0, 175.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'platform_min_x', -10000.0, 10000.0, -125.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'platform_max_x', -10000.0, 10000.0, 125.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'platform_min_y', -10000.0, 10000.0, -125.0, 'unit_mm');",
+      "FACTORY.add_real(scanner_array_group, text, 'platform_max_y', -10000.0, 10000.0, 125.0, 'unit_mm');"
+     ],
+     "marks": [
+      3,
+      5,
+      7
+     ]
+    },
+    {
+     "file": "main/param_groups.js",
+     "start": 358,
+     "end": 365,
+     "lines": [
+      "var laser_assignment_group = FACTORY.create_top_level_group('grp_laser_assignment', text, FLAGS.PLATFORM);",
+      "FACTORY.add_bool(laser_assignment_group, text, 'laser_assignment_enabled', false);",
+      "FACTORY.add_choice(laser_assignment_group, text, 'assignment_strategy', exports.LASER_STRATEGY_KEYS,",
+      "  'strategy_field_split');",
+      "FACTORY.add_choice(laser_assignment_group, text, 'load_balance_metric', exports.LOAD_METRIC_KEYS, 'metric_time');",
+      "FACTORY.add_real(laser_assignment_group, text, 'proximity_weight', 0.0, 1000.0, 0.0, '');",
+      "FACTORY.add_real(laser_assignment_group, text, 'swimlane_width', 0.1, 10000.0, 50.0, 'unit_mm');",
+      "FACTORY.add_bool(laser_assignment_group, text, 'swimlane_split_polylines', false);"
+     ],
+     "marks": [
+      1,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "grid",
+   "title": "Scanners on a grid",
+   "scene": {
+    "parts": "plate",
+    "spacing": 24,
+    "field": 32,
+    "strategy": "field_split"
+   },
+   "notes": [
+    "<code>build_scanner_array</code> places the scanners symmetrically around the array centre and numbers them row by row: <code>index = iy * count_x + ix</code>, so laser 1 is at the bottom left. Each scan field is a rectangle centred on its scanner.",
+    "The colour of a laser is computed, not a parameter: the hues are spread evenly around the colour wheel, because the number of lasers is itself a parameter."
+   ],
+   "ranges": [
+    {
+     "file": "lib/multi_laser/scanner_array.js",
+     "start": 125,
+     "end": 150,
+     "lines": [
+      "exports.build_scanner_array = function(a_cfg)",
+      "{",
+      "  let l_count_x = Math.max(1, Math.round(a_cfg.count_x));",
+      "  let l_count_y = Math.max(1, Math.round(a_cfg.count_y));",
+      "  let l_count = l_count_x * l_count_y;",
+      "  let l_half_w = 0.5 * a_cfg.field_width;",
+      "  let l_half_h = 0.5 * a_cfg.field_height;",
+      "",
+      "  let r_scanners = [];",
+      "  for (let iy = 0; iy < l_count_y; ++iy)",
+      "  {",
+      "    let l_y = a_cfg.center_y + (iy - 0.5 * (l_count_y - 1)) * a_cfg.spacing_y;",
+      "    for (let ix = 0; ix < l_count_x; ++ix)",
+      "    {",
+      "      let l_x = a_cfg.center_x + (ix - 0.5 * (l_count_x - 1)) * a_cfg.spacing_x;",
+      "      let l_index = iy * l_count_x + ix;",
+      "      r_scanners.push({",
+      "        laser_index: l_index,",
+      "        center: { x: l_x, y: l_y },",
+      "        field: { min_x: l_x - l_half_w, max_x: l_x + l_half_w, min_y: l_y - l_half_h, max_y: l_y + l_half_h },",
+      "        color_rgb: generate_laser_color(l_index, l_count)",
+      "      });",
+      "    }",
+      "  }",
+      "  return r_scanners;",
+      "};"
+     ],
+     "marks": [
+      15,
+      19,
+      20
+     ]
+    },
+    {
+     "file": "lib/multi_laser/scanner_array.js",
+     "start": 87,
+     "end": 89,
+     "lines": [
+      "  let l_saturation = 0.70;",
+      "  let l_value = 0.95;",
+      "  let l_hue = (a_laser_count > 0) ? (360.0 * a_laser_index / a_laser_count) : 0.0;"
+     ],
+     "marks": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "title": "Cut at the field borders",
+   "scene": {
+    "parts": "plate",
+    "spacing": 24,
+    "field": 32,
+    "strategy": "field_split"
+   },
+   "notes": [
+    "<code>run_field_split</code> cuts every hatch vector at the field borders. The candidates of a piece are the fields that contain its middle: one candidate means no choice, two or more mean an overlap.",
+    "Consecutive pieces of the same block that go to the same laser stay in one new block, so a hatch block inside one field stays one block. Contours are not cut: <code>assign_path_to_laser</code> gives the whole path to one laser."
+   ],
+   "ranges": [
+    {
+     "file": "lib/multi_laser/laser_assignment.js",
+     "start": 379,
+     "end": 403,
+     "lines": [
+      "    let l_open = undefined;",
+      "    let l_open_laser = -1;",
+      "    for (let p = 0; p + 1 < l_item.points.length; p += 2)",
+      "    {",
+      "      let l_a = l_item.points[p];",
+      "      let l_b = l_item.points[p + 1];",
+      "      let l_parts = LA_MATH.partition_segment_by_fields(l_a, l_b, a_ctx.fields);",
+      "      for (let q = 0; q < l_parts.length; ++q)",
+      "      {",
+      "        let l_sa = LA_MATH.lerp_point(l_a, l_b, l_parts[q].t_start);",
+      "        let l_sb = LA_MATH.lerp_point(l_a, l_b, l_parts[q].t_end);",
+      "        let l_laser = LA_MATH.choose_laser_for_segment(l_parts[q].candidates, l_states, l_sa, l_sb,",
+      "          a_ctx.fields, l_cost);",
+      "        LA_MATH.add_segment_load(l_states[l_laser], l_sa, l_sb, l_cost);",
+      "        if (l_laser !== l_open_laser)",
+      "        {",
+      "          if (l_open) a_out.push({ model_index: l_item.model_index, block: l_open });",
+      "          l_open = make_piece_block(l_item.block, POLY_IT.nPolyHatch);",
+      "          tag_block(l_open, l_laser, a_ctx);",
+      "          l_open_laser = l_laser;",
+      "        }",
+      "        append_vector(l_open, l_sa, l_sb);",
+      "      }",
+      "    }",
+      "    if (l_open) a_out.push({ model_index: l_item.model_index, block: l_open });"
+     ],
+     "marks": [
+      6,
+      11,
+      13
+     ]
+    }
+   ]
+  },
+  {
+   "id": "greedy",
+   "title": "The smallest load wins",
+   "scene": {
+    "parts": "plate",
+    "strategy": "field_split",
+    "spacing": 16,
+    "field": 40
+   },
+   "notes": [
+    "In an overlap the piece goes to the candidate whose load would be smallest <i>after</i> taking it: its load so far, the jump from where that laser stopped, the marking, and an optional proximity cost. With the metric <i>Exposure time</i> all of these are milliseconds from the <a href=\"laser_timing.html\">laser timing</a>.",
+    "The comparison is <code>&lt;</code>, not <code>&lt;=</code>: on a tie the lower laser number wins, so every run gives the same result. The drawing uses a larger overlap so the sharing is easy to see."
+   ],
+   "ranges": [
+    {
+     "file": "lib/multi_laser/laser_assignment_math.js",
+     "start": 434,
+     "end": 456,
+     "lines": [
+      "function choose_laser_for_segment(a_candidates, a_states, a_a, a_b, a_fields, a_cost)",
+      "{",
+      "  let l_mid = lerp_point(a_a, a_b, 0.5);",
+      "  if (a_candidates.length === 0) return find_nearest_laser(l_mid, a_fields);",
+      "  if (a_candidates.length === 1) return a_candidates[0];",
+      "",
+      "  let r_index = a_candidates[0];",
+      "  let l_best = Number.POSITIVE_INFINITY;",
+      "  for (let i = 0; i < a_candidates.length; ++i)",
+      "  {",
+      "    let l_id = a_candidates[i];",
+      "    let l_state = a_states[l_id];",
+      "    let l_total = l_state.load + jump_cost(l_state.last_end, a_a, a_cost) + mark_cost(a_a, a_b, a_cost) +",
+      "      proximity_cost(l_mid, l_id, a_fields, a_cost);",
+      "    // '<' (not '<='): on a tie the lower laser index (earlier candidate) wins.",
+      "    if (l_total < l_best)",
+      "    {",
+      "      l_best = l_total;",
+      "      r_index = l_id;",
+      "    }",
+      "  }",
+      "  return r_index;",
+      "}"
+     ],
+     "marks": [
+      12,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lanes",
+   "title": "Swimlanes, downstream first",
+   "scene": {
+    "parts": "parts",
+    "strategy": "swimlane",
+    "spacing": 20,
+    "field": 80,
+    "lane": 20
+   },
+   "notes": [
+    "<code>build_swimlanes</code> cuts the platform into bands along the gas flow; lane 0 is the one furthest downstream. <code>assign_pieces_by_lane</code> then works lane by lane with fresh loads, so the lasers share every lane on its own.",
+    "A swimlane piece is never split between lasers: the candidates are the fields that contain its centre. On one plate the hatch of a lane is a single piece, so balancing needs several parts or islands per lane, like the thirteen parts of the video in the drawing."
+   ],
+   "ranges": [
+    {
+     "file": "lib/multi_laser/scanner_array.js",
+     "start": 196,
+     "end": 204,
+     "lines": [
+      "  let l_count = Math.max(1, Math.ceil((l_max - l_min) / a_width));",
+      "  let r_lanes = [];",
+      "  for (let i = 0; i < l_count; ++i)",
+      "  {",
+      "    let l_lo = l_min + i * a_width;",
+      "    let l_hi = (i === l_count - 1) ? l_max : (l_lo + a_width);",
+      "    r_lanes.push({ lane_index: i, key_min: l_lo, key_max: l_hi });",
+      "  }",
+      "  return r_lanes;"
+     ],
+     "marks": [
+      0,
+      6
+     ]
+    },
+    {
+     "file": "lib/multi_laser/laser_assignment.js",
+     "start": 565,
+     "end": 587,
+     "lines": [
+      "function assign_pieces_by_lane(a_pieces, a_ctx, a_out)",
+      "{",
+      "  let l_buckets = [];",
+      "  for (let i = 0; i < a_ctx.lanes.length; ++i) l_buckets.push([]);",
+      "  for (let i = 0; i < a_pieces.length; ++i)",
+      "  {",
+      "    let l_key = SCANNER_ARRAY.flow_key(a_pieces[i].center, a_ctx.gas_dir);",
+      "    l_buckets[SCANNER_ARRAY.find_swimlane_index(l_key, a_ctx.lanes)].push(a_pieces[i]);",
+      "  }",
+      "",
+      "  for (let lane = 0; lane < l_buckets.length; ++lane)",
+      "  {",
+      "    let l_states = LA_MATH.create_laser_states(a_ctx.fields.length);",
+      "    for (let b = 0; b < l_buckets[lane].length; ++b)",
+      "    {",
+      "      let l_piece = l_buckets[lane][b];",
+      "      let l_laser = LA_MATH.assign_path_to_laser(l_piece.points, l_piece.is_hatch, l_piece.center, l_states,",
+      "        a_ctx.fields, cost_for(a_ctx.cost, l_piece.speed));",
+      "      tag_block(l_piece.block, l_laser, a_ctx);",
+      "      a_out.push({ model_index: l_piece.model_index, block: l_piece.block });",
+      "    }",
+      "  }",
+      "}"
+     ],
+     "marks": [
+      12,
+      16
+     ]
+    }
+   ]
+  },
+  {
+   "id": "post",
+   "title": "Laser BSIDs, power and time",
+   "scene": {
+    "parts": "plate",
+    "spacing": 24,
+    "field": 32,
+    "strategy": "field_split"
+   },
+   "notes": [
+    "The laser assignment runs in the post-processing of every layer, after the exposure sorting and before the power optimization, which then works along the timeline of every laser. The time estimate runs last and takes the slowest laser.",
+    "<code>tag_block</code> writes the laser into the BSID: (laser + 1) × 1000 + vector type, so 500 becomes 1500 … 4500. Machines and the smoke simulation find the laser of a path only through its BSID."
+   ],
+   "ranges": [
+    {
+     "file": "main/postprocess.js",
+     "start": 537,
+     "end": 555,
+     "lines": [
+      "    // b) Laser of every path (multi-laser machines, if enabled). A",
+      "    //    problem in one layer is reported and the layer keeps the",
+      "    //    lasers of its vector types; the other layers go on.",
+      "    if (l_assign_cfg)",
+      "    {",
+      "      let l_res = LASER_ASSIGNMENT.assign_layer(modelData, n, l_assign_cfg);",
+      "      if (!l_res.ok) LOG.warning_once('pp_laser_assignment', l_res.message + ' (layer ' + n + ')');",
+      "    }",
+      "",
+      "    // c) Power per hatch vector along the timeline of every laser",
+      "    //    (rebuilds the paths of the changed model layers).",
+      "    POWER_OPT.optimize_layer(modelData, n, l_power_maps, l_timing);",
+      "",
+      "    // d) Time of the layer in the final order. Tray attributes store",
+      "    //    text, so the number is converted to a string; one attribute per",
+      "    //    layer in whole ms, e.g. 'layer_built_time_estimation_ms_12'",
+      "    //    (name read by the host applications).",
+      "    let l_ms = EXPOSURE_TIME.estimate_layer_time_ms(modelData, n, l_timing, l_speed_lookup);",
+      "    modelData.setTrayAttrib(TRAY_ATTR.LAYER_TIME_PREFIX + n, Math.round(l_ms).toString());"
+     ],
+     "marks": [
+      5,
+      11,
+      17
+     ]
+    },
+    {
+     "file": "lib/multi_laser/laser_bsid.js",
+     "start": 63,
+     "end": 66,
+     "lines": [
+      "exports.make_laser_bsid = function(a_type_bsid, a_laser_index)",
+      "{",
+      "  return (a_laser_index + 1) * S_STRIDE + exports.type_bsid(a_type_bsid);",
+      "};"
+     ],
+     "marks": [
+      2
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "enable",
+   "title": "Laser assignment on by default",
+   "why": "Your machine always has several lasers, so new profiles should not start with a single laser.",
+   "result": "New profiles start with the laser assignment switched on. The platform profile decides, so create the new profile and set it as platform profile.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 359,
+     "before": "FACTORY.add_bool(laser_assignment_group, text, 'laser_assignment_enabled', false);",
+     "after": "FACTORY.add_bool(laser_assignment_group, text, 'laser_assignment_enabled', true);"
+    }
+   ]
+  },
+  {
+   "id": "machine",
+   "title": "Your scanner layout as the default",
+   "why": "For example a machine with 4 × 2 scanners, so nobody has to type the array into every profile.",
+   "result": "New profiles start with 4 scanners per row (8 lasers with the 2 rows of the default). Change the spacing, the field size and the platform bounds the same way.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 332,
+     "before": "FACTORY.add_int(scanner_array_group, text, 'scanner_count_x', 1, 16, 2, '');",
+     "after": "FACTORY.add_int(scanner_array_group, text, 'scanner_count_x', 1, 16, 4, '');"
+    }
+   ]
+  },
+  {
+   "id": "length",
+   "title": "Balance by length",
+   "why": "The marked length is simpler to compare with your machine's own statistics than an estimated time.",
+   "result": "New profiles share the work by marked length; jumps and delays no longer count.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 362,
+     "before": "FACTORY.add_choice(laser_assignment_group, text, 'load_balance_metric', exports.LOAD_METRIC_KEYS, 'metric_time');",
+     "after": "FACTORY.add_choice(laser_assignment_group, text, 'load_balance_metric', exports.LOAD_METRIC_KEYS, 'metric_length');"
+    }
+   ]
+  },
+  {
+   "id": "colours",
+   "title": "Stronger laser colours",
+   "why": "Neighbouring lasers are easier to tell apart in the Exposure Preview.",
+   "result": "Every laser is drawn in a fully saturated colour; the hues stay the same.",
+   "atu": [
+    "compile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/multi_laser/scanner_array.js",
+     "line": 87,
+     "before": "  let l_saturation = 0.70;",
+     "after": "  let l_saturation = 1.0;"
+    }
+   ]
+  }
+ ]
+}

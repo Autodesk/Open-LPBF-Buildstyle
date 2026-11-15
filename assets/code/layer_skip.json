@@ -1,0 +1,324 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "One factory for every layer skip group",
+   "scene": {
+    "border": 1,
+    "borderOffset": 0,
+    "hatch": 1,
+    "hatchOffset": 0
+   },
+   "notes": [
+    "<code>create_layer_skip_group</code> adds the two parameters <i>Expose every n-th layer</i> (1 … 100) and <i>Layer offset</i> (0 … 99). The defaults 1 and 0 come from the library table: every layer is exposed.",
+    "The same function is called for every contour type, for every hatch group and for the wall supports, so all of them get the same two parameters."
+   ],
+   "ranges": [
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 348,
+     "end": 357,
+     "lines": [
+      "exports.create_layer_skip_group = function(a_parent_grp, a_group_id, a_text, a_defaults, a_flags)",
+      "{",
+      "  let l_grp = create_child(a_parent_grp, a_group_id, a_text, choose_flags(a_flags, exports.FLAGS.DEF));",
+      "  exports.add_int(l_grp, a_text, 'every_nth_layer', 1, 100,",
+      "    get_default(a_defaults, 'every_nth_layer'), 'unit_layers');",
+      "  // The reader takes the offset modulo every_nth_layer, so values >= n are valid.",
+      "  exports.add_int(l_grp, a_text, 'layer_offset', 0, 99,",
+      "    get_default(a_defaults, 'layer_offset'), 'unit_layers');",
+      "  return l_grp;",
+      "};"
+     ],
+     "marks": [
+      3,
+      4,
+      5,
+      6,
+      7
+     ]
+    },
+    {
+     "file": "main/param_groups.js",
+     "start": 126,
+     "end": 131,
+     "lines": [
+      "function add_contour_children(a_grp)",
+      "{",
+      "  FACTORY.create_layer_skip_group(a_grp, CHILD_ID.LAYER_SKIP, text, {}, FLAGS.DEF);",
+      "  FACTORY.create_stipple_group(a_grp, CHILD_ID.STIPPLE, text, {}, FLAGS.OPT_OFF);",
+      "  FACTORY.create_start_point_group(a_grp, CHILD_ID.START_POINT, text, {}, FLAGS.DEF);",
+      "}"
+     ],
+     "marks": [
+      2
+     ]
+    },
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 573,
+     "end": 574,
+     "lines": [
+      "  exports.create_rotation_group(l_grp, exports.CHILD_ID.ROTATION, a_text, a_defaults);",
+      "  exports.create_layer_skip_group(l_grp, exports.CHILD_ID.LAYER_SKIP, a_text, a_defaults);"
+     ],
+     "marks": [
+      1
+     ]
+    },
+    {
+     "file": "main/param_groups.js",
+     "start": 238,
+     "end": 239,
+     "lines": [
+      "var support_wall_group = FACTORY.create_top_level_group('grp_support_wall', text, FLAGS.OPT_ON);",
+      "FACTORY.create_layer_skip_group(support_wall_group, CHILD_ID.LAYER_SKIP, text, {}, FLAGS.DEF);"
+     ],
+     "marks": [
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read n and the offset",
+   "scene": {
+    "border": 2,
+    "borderOffset": 3,
+    "hatch": 1,
+    "hatchOffset": 0
+   },
+   "notes": [
+    "<code>read_layer_skip</code> protects against n = 0 and takes the offset modulo n: with n = 2 the offsets 1 and 3 select the same layers. The drawing uses offset 3, which gives the same layers as offset 1."
+   ],
+   "ranges": [
+    {
+     "file": "lib/params/param_readers.js",
+     "start": 159,
+     "end": 168,
+     "lines": [
+      "exports.read_layer_skip = function(a_grp)",
+      "{",
+      "  if (!is_group(a_grp)) return { every_nth: 1, offset: 0 };",
+      "  // Math.max protects against 0 (division by zero in the modulo below).",
+      "  let l_every_nth = Math.max(1, a_grp.getParamVal('every_nth_layer'));",
+      "  // The UI allows offsets up to 99 for any n. The modulo maps e.g.",
+      "  // offset 3 with n = 2 to offset 1, which selects the same layers.",
+      "  let l_offset = a_grp.getParamVal('layer_offset') % l_every_nth;",
+      "  return { every_nth: l_every_nth, offset: l_offset };",
+      "};"
+     ],
+     "marks": [
+      3,
+      4,
+      7
+     ]
+    },
+    {
+     "file": "main/settings.js",
+     "start": 171,
+     "end": 178,
+     "lines": [
+      "function read_contour_children(a_grp)",
+      "{",
+      "  return {",
+      "    layer_skip: READ.read_layer_skip(a_grp.getChildGrp(CHILD_ID.LAYER_SKIP)),",
+      "    stipple: READ.read_stipple(a_grp.getChildGrp(CHILD_ID.STIPPLE)),",
+      "    start_point: READ.read_start_point(a_grp.getChildGrp(CHILD_ID.START_POINT))",
+      "  };",
+      "}"
+     ],
+     "marks": [
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "index",
+   "title": "Counted from the part, not from the platform",
+   "scene": {
+    "border": 2,
+    "borderOffset": 0,
+    "hatch": 1,
+    "hatchOffset": 0
+   },
+   "notes": [
+    "The layer index starts with 0 at the lowest layer of the part. ATU numbers its layers from 1, so for a part that starts on the platform, ATU's layer 101 is index 100.",
+    "That is why, in the video, n = 2 with offset 0 keeps the border on layers 101 and 103: index 100 and 102 are even."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 610,
+     "end": 611,
+     "lines": [
+      "    // 0-based layer index of the part, used for layer skip and rotation.",
+      "    layer_index: Math.max(0, a_input.layer_nr - a_input.info.min_layer_nr),"
+     ],
+     "marks": [
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "decide",
+   "title": "Yes or no for one layer",
+   "scene": {
+    "border": 2,
+    "borderOffset": 1,
+    "hatch": 1,
+    "hatchOffset": 0
+   },
+   "notes": [
+    "<code>is_active</code> exposes a layer if <i>index − offset</i> is a multiple of n. It has no memory of earlier layers, so the answer is the same in every thread and in any order of the layers.",
+    "JavaScript's <code>%</code> keeps the sign of the left side, so a negative remainder is shifted up by n before the test."
+   ],
+   "ranges": [
+    {
+     "file": "lib/util/layer_skip.js",
+     "start": 58,
+     "end": 74,
+     "lines": [
+      "exports.is_active = function(a_layer_index, a_cfg)",
+      "{",
+      "  // No settings, or every_nth <= 1 (also undefined or NaN): expose every layer.",
+      "  if (!a_cfg) return true;",
+      "  if (!(a_cfg.every_nth > 1)) return true;",
+      "  // A negative index should not happen. Exposing is the safe choice.",
+      "  if (a_layer_index < 0) return true;",
+      "  let l_offset = a_cfg.offset;",
+      "  if (typeof l_offset !== 'number') l_offset = 0;",
+      "  // Tip: % is the remainder of a division, e.g. 5 % 2 = 1.",
+      "  // A remainder of 0 means the layer is one of the \"every n-th\" layers.",
+      "  // In JavaScript the remainder has the sign of the dividend",
+      "  // ((0 - 1) % 5 = -1), so it is shifted into [0, every_nth) first.",
+      "  let l_rem = (a_layer_index - l_offset) % a_cfg.every_nth;",
+      "  if (l_rem < 0) l_rem += a_cfg.every_nth;",
+      "  return l_rem === 0;",
+      "};"
+     ],
+     "marks": [
+      4,
+      13,
+      14,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "use",
+   "title": "Skip the whole vector type on that layer",
+   "scene": {
+    "border": 2,
+    "borderOffset": 0,
+    "hatch": 2,
+    "hatchOffset": 1
+   },
+   "notes": [
+    "Each vector type asks <code>is_active</code> before it creates its paths: the first border, the following borders and fill contours, every hatch area and the wall supports. A skipped type produces nothing on that layer, there is no thinner or weaker version.",
+    "Different offsets make types take turns: here the border is on the odd layers, the hatch on the even layers. If every type is skipped on a layer, that layer stays empty."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 305,
+     "end": 309,
+     "lines": [
+      "function process_first_border(a_ctx, a_island, a_result, a_insets, a_isl_info)",
+      "{",
+      "  let l_bf = a_ctx.part.border_first;",
+      "  // Disabled, or this layer is skipped (\"expose every n-th layer\").",
+      "  if (!l_bf.enabled || !LAYER_SKIP.is_active(a_ctx.layer_index, l_bf.layer_skip)) return;"
+     ],
+     "marks": [
+      4
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 350,
+     "end": 352,
+     "lines": [
+      "function process_contour_rings(a_ctx, a_island, a_result, a_cfg, a_insets, a_bsid, a_bsid_ds, a_split, a_isl_info)",
+      "{",
+      "  if (!a_cfg.enabled || !LAYER_SKIP.is_active(a_ctx.layer_index, a_cfg.layer_skip)) return;"
+     ],
+     "marks": [
+      2
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 379,
+     "end": 382,
+     "lines": [
+      "function hatch_area(a_ctx, a_result, a_area, a_hatch_cfg, a_bsid, a_islid, a_bounds, a_is_support)",
+      "{",
+      "  if (a_area.isEmpty()) return;",
+      "  if (!LAYER_SKIP.is_active(a_ctx.layer_index, a_hatch_cfg.layer_skip)) return;"
+     ],
+     "marks": [
+      3
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 575,
+     "end": 576,
+     "lines": [
+      "    else if ((l_subtype === MODEL.nSubtypeSupport) && l_wall.enabled &&",
+      "             LAYER_SKIP.is_active(a_ctx.layer_index, l_wall.layer_skip))"
+     ],
+     "marks": [
+      1
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "walls",
+   "title": "Wall supports on every second layer by default",
+   "why": "Supports only have to hold the part; exposing them on every second layer saves time and heat.",
+   "result": "New profiles expose the wall supports on every second layer; the part itself is not affected.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 239,
+     "before": "FACTORY.create_layer_skip_group(support_wall_group, CHILD_ID.LAYER_SKIP, text, {}, FLAGS.DEF);",
+     "after": "FACTORY.create_layer_skip_group(support_wall_group, CHILD_ID.LAYER_SKIP, text, { every_nth_layer: 2 }, FLAGS.DEF);"
+    }
+   ]
+  },
+  {
+   "id": "contours",
+   "title": "Contours take turns",
+   "why": "All contour types start with the same layer skip. Here every contour type starts with every second layer, so you can give the following borders offset 1 and let them alternate with the first border.",
+   "result": "First border, following borders and fill contours start with <i>Expose every n-th layer</i> = 2. Try the same in the explainer with two different offsets.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 128,
+     "before": "  FACTORY.create_layer_skip_group(a_grp, CHILD_ID.LAYER_SKIP, text, {}, FLAGS.DEF);",
+     "after": "  FACTORY.create_layer_skip_group(a_grp, CHILD_ID.LAYER_SKIP, text, { every_nth_layer: 2 }, FLAGS.DEF);"
+    }
+   ]
+  }
+ ]
+}

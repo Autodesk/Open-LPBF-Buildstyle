@@ -1,0 +1,279 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "all"
+   },
+   "notes": [
+    "Solid supports are on by default. The group has an inset (0 mm by default) and a hatch sub-group with 0.2 mm hatch distance, twice the part's 0.1 mm. The last argument <code>false</code> leaves out the power optimisation.",
+    "Only two patterns are offered for supports, via <code>SUPPORT_PATTERN_KEYS</code>: meander and offset."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 241,
+     "end": 248,
+     "lines": [
+      "// 9. Solid supports (areas)",
+      "// On by default. support_inset (mm) shrinks the area before hatching.",
+      "// Hatch distance 0.2 mm, meander or offset only, no power optimization",
+      "// (last argument false).",
+      "var support_solid_group = FACTORY.create_top_level_group('grp_support_solid', text, FLAGS.OPT_ON);",
+      "FACTORY.add_real(support_solid_group, text, 'support_inset', 0.0, 2.0, 0.0, 'unit_mm');",
+      "FACTORY.create_hatch_group(support_solid_group, 'grp_hatch_support', text,",
+      "  { hatch_distance: 0.2 }, FLAGS.DEF, exports.SUPPORT_PATTERN_KEYS, false);"
+     ],
+     "marks": [
+      1,
+      4,
+      5,
+      7
+     ]
+    },
+    {
+     "file": "main/param_groups.js",
+     "start": 74,
+     "end": 74,
+     "lines": [
+      "exports.SUPPORT_PATTERN_KEYS = Object.freeze(['pattern_meander', 'pattern_offset']);"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "mode": "all"
+   },
+   "notes": [
+    "<code>part.support_solid</code> holds the switch, the inset and a complete HATCH object. <code>read_hatch</code> is the same reader as for the part hatches, only with the support pattern list."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 273,
+     "end": 276,
+     "lines": [
+      "    support_solid: {",
+      "      enabled: G.support_solid_group.isGrpEnabled(),",
+      "      inset: G.support_solid_group.getParamVal('support_inset'),",
+      "      hatch: READ.read_hatch(G.support_solid_group.getChildGrp('grp_hatch_support'), G.SUPPORT_PATTERN_KEYS)"
+     ],
+     "marks": [
+      1,
+      2,
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "inset",
+   "title": "Shrink the area, then hatch it",
+   "scene": {
+    "mode": "one",
+    "inset": 0.5
+   },
+   "notes": [
+    "<code>process_solid_support_island</code> is short: no border and no skin detection, only an optional inset and one call to <code>hatch_area</code>. The <code>true</code> at the end marks the vectors as support.",
+    "With 0.5 mm inset each 3 × 3 mm pillar is hatched on 2 × 2 mm only: the support touches the part on a smaller area and is easier to remove."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 537,
+     "end": 546,
+     "lines": [
+      "function process_solid_support_island(a_ctx, a_island, a_result)",
+      "{",
+      "  let l_cfg = a_ctx.part.support_solid;",
+      "  if (!l_cfg.enabled) return;",
+      "  a_ctx.island_counter += 1;",
+      "  // Optional inset (mm): keeps the support hatch away from its outline.",
+      "  let l_area = (l_cfg.inset > 0.0) ? ISL.offset(a_island, -l_cfg.inset) : a_island;",
+      "  hatch_area(a_ctx, a_result, l_area, l_cfg.hatch, BSID.support_solid, a_ctx.island_counter,",
+      "    get_island_bounds(a_island), true);",
+      "}"
+     ],
+     "marks": [
+      6,
+      7,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "offset",
+   "title": "The offset pattern",
+   "scene": {
+    "mode": "one",
+    "inset": 0.5,
+    "pattern": "offset"
+   },
+   "notes": [
+    "<code>make_offset_hatch</code> puts ring k at 0.5 · d + k · d inside the area and stops when the offset is empty. For the 2 × 2 mm area and d = 0.2 mm that gives rings at 0.1, 0.3, 0.5, 0.7 and 0.9 mm: five rings, 20 mm per pillar.",
+    "Six pillars: 120 mm, the value ATU reports after the change. With meander and no inset it was 269.88 mm."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 264,
+     "end": 293,
+     "lines": [
+      "function make_offset_hatch(a_area, a_cfg)",
+      "{",
+      "  let l_d = a_cfg.hatch_distance;",
+      "  let l_rings = [];",
+      "  for (let k = 0; k < S_MAX_OFFSET_RINGS; ++k)",
+      "  {",
+      "    // The first ring lies half a hatch distance inside the area border.",
+      "    // Ring k lies at 0.5 * d + k * d, so neighboring rings are d apart.",
+      "    // Every ring is computed from the original area (no error build-up).",
+      "    let l_ring_isl = ISL.offset(a_area, -(0.5 * l_d + k * l_d));",
+      "    if (l_ring_isl.isEmpty()) break;",
+      "    let l_ring_hatch = new HATCH.bsHatch();",
+      "    l_ring_isl.borderToHatch(l_ring_hatch);",
+      "    if ((k % 2) === 1) l_ring_hatch.flip(false, true);",
+      "    l_rings.push(l_ring_hatch);",
+      "  }",
+      "",
+      "  // The rings were collected from outside to inside; inside_out reverses",
+      "  // the exposure order (innermost ring first).",
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  if (a_cfg.offset.inside_out === true)",
+      "  {",
+      "    for (let i = l_rings.length - 1; i >= 0; --i) r_hatch.moveDataFrom(l_rings[i]);",
+      "  }",
+      "  else",
+      "  {",
+      "    for (let i = 0; i < l_rings.length; ++i) r_hatch.moveDataFrom(l_rings[i]);",
+      "  }",
+      "  return r_hatch;",
+      "}"
+     ],
+     "marks": [
+      9,
+      10,
+      13
+     ]
+    }
+   ]
+  },
+  {
+   "id": "subtype",
+   "title": "Mark the hatch as support",
+   "scene": {
+    "mode": "all",
+    "inset": 0.5,
+    "pattern": "offset"
+   },
+   "notes": [
+    "<code>hatch_area</code> is shared with the part hatches: rotation angle, pattern and layer skip. Only the last line differs: support vectors get the model subtype <code>nSubtypeSupport</code>, which the preview, the sorting and the export use."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 416,
+     "end": 417,
+     "lines": [
+      "  if (a_is_support) l_res.hatch.setModelSubtype(MODEL.nSubtypeSupport);",
+      "  add_hatch(a_ctx, a_result, l_res.hatch, a_bsid, a_islid, a_bounds);"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Laser settings and order",
+   "scene": {
+    "mode": "all"
+   },
+   "notes": [
+    "Solid supports (BSID 710) run at 200 W and 1200 mm/s. Scan order 20 follows the wall supports (10) and comes before every part vector."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 118,
+     "end": 118,
+     "lines": [
+      "  make_entry('support_solid',       710, 'none',             false, 200, 1200, 20, [ 90,  90,  90])"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "inset",
+   "title": "A support inset by default",
+   "why": "Supports that are easier to remove, with a smaller contact area.",
+   "result": "New profiles shrink every support area by 0.3 mm before hatching. Drag <b>Inset</b> in <b>Try it</b> to see the effect.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 246,
+     "before": "FACTORY.add_real(support_solid_group, text, 'support_inset', 0.0, 2.0, 0.0, 'unit_mm');",
+     "after": "FACTORY.add_real(support_solid_group, text, 'support_inset', 0.0, 2.0, 0.3, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "hd",
+   "title": "A coarser support hatch",
+   "why": "Even less material and time for supports that only have to hold the part.",
+   "result": "Support hatch lines 0.3 mm apart: a third less line length. Set the hatch distance in <b>Try it</b>.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 248,
+     "before": "  { hatch_distance: 0.2 }, FLAGS.DEF, exports.SUPPORT_PATTERN_KEYS, false);",
+     "after": "  { hatch_distance: 0.3 }, FLAGS.DEF, exports.SUPPORT_PATTERN_KEYS, false);"
+    }
+   ]
+  },
+  {
+   "id": "speed",
+   "title": "Faster solid supports",
+   "why": "Shorter build time when the supports hold well enough.",
+   "result": "Solid support default 1500 mm/s. For one profile, change Scanning › Solid support › speed in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 118,
+     "before": "  make_entry('support_solid',       710, 'none',             false, 200, 1200, 20, [ 90,  90,  90])",
+     "after": "  make_entry('support_solid',       710, 'none',             false, 200, 1500, 20, [ 90,  90,  90])"
+    }
+   ]
+  }
+ ]
+}

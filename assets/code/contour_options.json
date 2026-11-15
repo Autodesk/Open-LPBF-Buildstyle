@@ -1,0 +1,401 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Shared child groups of every contour type",
+   "scene": {
+    "mode": "start",
+    "start": "random"
+   },
+   "notes": [
+    "First border, following borders and fill contours get the same three child groups from <code>add_contour_children</code>: layer skip, line stipple and start point shift. The stipple is off by default (<code>OPT_OFF</code>); the start point shift is always there, with the mode <i>Random</i> as default.",
+    "The video starts with the mode set to <i>Off</i> to show the stacked seams, then switches to <i>Random + previous layers</i>."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 126,
+     "end": 131,
+     "lines": [
+      "function add_contour_children(a_grp)",
+      "{",
+      "  FACTORY.create_layer_skip_group(a_grp, CHILD_ID.LAYER_SKIP, text, {}, FLAGS.DEF);",
+      "  FACTORY.create_stipple_group(a_grp, CHILD_ID.STIPPLE, text, {}, FLAGS.OPT_OFF);",
+      "  FACTORY.create_start_point_group(a_grp, CHILD_ID.START_POINT, text, {}, FLAGS.DEF);",
+      "}"
+     ],
+     "marks": [
+      3,
+      4
+     ]
+    },
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 134,
+     "end": 140,
+     "lines": [
+      "  // T2 line stipple",
+      "  // 1 mm dashes, no overlap, closed in 2 interleaved passes.",
+      "  stipple_length: 1.0, stipple_overlap: 0.0, stipple_count: 2, stipple_random_start: true,",
+      "  // T3 start point",
+      "  // Option KEY (not index) of the default mode; avoid the start points",
+      "  // of the last 3 layers by at least 1 mm.",
+      "  start_point_mode: 'start_mode_random', history_layer_count: 3, min_start_distance: 1.0,"
+     ],
+     "marks": [
+      2,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the settings",
+   "scene": {
+    "mode": "start",
+    "start": "random_previous"
+   },
+   "notes": [
+    "<code>read_contour_children</code> reads the three groups of one contour type. The start point mode becomes one of the keys <code>'off'</code>, <code>'random'</code>, <code>'previous'</code> or <code>'random_previous'</code>; <i>Compared layers</i> and <i>Minimum distance to previous start points</i> become <code>history_layers</code> and <code>min_distance</code>."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 171,
+     "end": 178,
+     "lines": [
+      "function read_contour_children(a_grp)",
+      "{",
+      "  return {",
+      "    layer_skip: READ.read_layer_skip(a_grp.getChildGrp(CHILD_ID.LAYER_SKIP)),",
+      "    stipple: READ.read_stipple(a_grp.getChildGrp(CHILD_ID.STIPPLE)),",
+      "    start_point: READ.read_start_point(a_grp.getChildGrp(CHILD_ID.START_POINT))",
+      "  };",
+      "}"
+     ],
+     "marks": [
+      4,
+      5
+     ]
+    },
+    {
+     "file": "lib/params/param_readers.js",
+     "start": 212,
+     "end": 222,
+     "lines": [
+      "exports.read_start_point = function(a_grp)",
+      "{",
+      "  // No group -> no start point shift at all.",
+      "  if (!is_group(a_grp)) return { mode: 'off', history_layers: 1, min_distance: 0.0 };",
+      "  // Invalid option index -> 'random', which is also the factory default.",
+      "  return {",
+      "    mode: pick(S_START_MODES, read_choice_index(a_grp, 'start_point_mode'), 'random'),",
+      "    history_layers: a_grp.getParamVal('history_layer_count'),",
+      "    min_distance: a_grp.getParamVal('min_start_distance')",
+      "  };",
+      "};"
+     ],
+     "marks": [
+      3,
+      7,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "random",
+   "title": "A random start point, while the layer is built",
+   "scene": {
+    "mode": "start",
+    "start": "random"
+   },
+   "notes": [
+    "Every contour ring passes <code>emit_contour</code>. Its seed is made from layer number, island and ring, so a rebuild gives exactly the same start points.",
+    "For <i>Random</i> and <i>Random + previous layers</i>, <code>apply_direction_and_start</code> moves the start to a random point of the ring. The two modes with history need the layers below and are finished later, in the post-processing."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 204,
+     "end": 212,
+     "lines": [
+      "  let l_seed = RANDOM.make_seed(a_ctx.layer_nr, a_isl_info.islid, a_bsid * 1000 + a_ring);",
+      "  CONTOURS.apply_direction_and_start(a_hatch, {",
+      "    alternate_per_layer: a_cfg.alternate_per_layer === true,",
+      "    alternate_per_contour: a_cfg.alternate_per_contour === true,",
+      "    layer_index: a_ctx.layer_index,",
+      "    ring_index: a_ring,",
+      "    start_point: a_cfg.start_point,",
+      "    seed: l_seed",
+      "  });"
+     ],
+     "marks": [
+      0,
+      6
+     ]
+    },
+    {
+     "file": "lib/exposure/contours.js",
+     "start": 120,
+     "end": 129,
+     "lines": [
+      "  let l_mode = a_opts.start_point ? a_opts.start_point.mode : 'off';",
+      "  if ((l_mode === 'random') || (l_mode === 'random_previous'))",
+      "  {",
+      "    // 'random_previous' gets a random start here as a first guess; the",
+      "    // post-processing may move it again based on the previous layers.",
+      "    // The seed is derived from layer, island and ring, so the result is",
+      "    // reproducible: recalculating a layer gives the same start points.",
+      "    // For closed polygons one of the existing polygon points is chosen.",
+      "    a_hatch.setRandomStartPoint(HATCH.nLoopModeFlagClosedPolygon, RANDOM.to_builtin_seed(a_opts.seed));",
+      "  }"
+     ],
+     "marks": [
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "history",
+   "title": "Away from the previous layers",
+   "scene": {
+    "mode": "start",
+    "start": "random_previous"
+   },
+   "notes": [
+    "The post-processing step <code>step_start_points_st</code> runs single-threaded, from the lowest layer up, because each layer needs the start points chosen below it. It keeps one history per model and contour family.",
+    "<code>START_HIST.apply</code> takes up to 64 evenly spaced points of the ring as candidates, in ring order for <i>Previous layers</i> or shuffled for <i>Random + previous layers</i>. The first candidate at least <i>Minimum distance</i> away from the start points of the last <i>Compared layers</i> layers wins; if none is far enough, the farthest one is used. Compare <i>Previous layers</i> and <i>Random + previous layers</i> in the explainer: the first walks around the part step by step."
+   ],
+   "ranges": [
+    {
+     "file": "main/main.js",
+     "start": 527,
+     "end": 527,
+     "lines": [
+      "  a_config.addPostProcessingStep(POSTPROCESS.step_start_points_st, { bMultithread: false, nProgressWeight: 1 });"
+     ],
+     "marks": [
+      0
+     ]
+    },
+    {
+     "file": "main/postprocess.js",
+     "start": 455,
+     "end": 456,
+     "lines": [
+      "    let l_hist = START_HIST.get_history(a_store, l_model_index + '_' + l_vt.family, l_cfg.start_point.history_layers);",
+      "    START_HIST.apply(l_poly, l_hist, l_cfg.start_point, RANDOM.make_seed(a_layer_nr, i, l_bsid));"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    },
+    {
+     "file": "lib/sorting/start_point_history.js",
+     "start": 182,
+     "end": 219,
+     "lines": [
+      "  let l_cands = make_candidates(l_n_eff);",
+      "  if (a_cfg.mode === 'random_previous')",
+      "  {",
+      "    RANDOM.shuffle_in_place(l_cands, RANDOM.create_rng(a_seed));",
+      "  }",
+      "",
+      "  // l_best_score starts below any real distance (distances are >= 0),",
+      "  // so the first candidate always becomes the current best.",
+      "  let l_best_idx = l_cands[0];",
+      "  let l_best_score = -1.0;",
+      "  let l_best_point = undefined;",
+      "  for (let i = 0; i < l_cands.length; ++i)",
+      "  {",
+      "    let l_p = a_poly.getXYCoord(l_cands[i]);",
+      "    let l_score = min_distance_to_history(l_p, a_hist.layers);",
+      "    // Far enough away: take it and stop searching. Without history the",
+      "    // score is Infinity, so the first candidate is taken.",
+      "    if (l_score >= a_cfg.min_distance)",
+      "    {",
+      "      l_best_idx = l_cands[i];",
+      "      l_best_point = l_p;",
+      "      break;",
+      "    }",
+      "    if (l_score > l_best_score)",
+      "    {",
+      "      l_best_score = l_score;",
+      "      l_best_idx = l_cands[i];",
+      "      l_best_point = l_p;",
+      "    }",
+      "  }",
+      "",
+      "  // Index 0 is already the start point: no change needed.",
+      "  if (l_best_idx !== 0)",
+      "  {",
+      "    a_poly.setClosedPolyStartPoint(l_best_idx);",
+      "  }",
+      "  // Remember the chosen point for the following layers (after commit_layer).",
+      "  a_hist.current.push({ x: l_best_point.x, y: l_best_point.y });"
+     ],
+     "marks": [
+      3,
+      17,
+      34
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stipple",
+   "title": "Line stipple: dashes in several passes",
+   "scene": {
+    "mode": "stipple",
+    "dash": 2,
+    "passes": 2,
+    "progress": 60
+   },
+   "notes": [
+    "With the stipple on, <code>emit_contour</code> replaces the closed ring by a new hatch of dashes. The host function <code>lineStippling</code> cuts the ring into dashes of the dash length and spreads them over the passes: with 2 passes the laser first exposes every second dash, then the gaps, as in the animation at the end of the video.",
+    "Each dash has time to cool before its neighbour is melted, which helps thin walls and small features."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 217,
+     "end": 220,
+     "lines": [
+      "  let l_hatch = a_hatch;",
+      "  if (a_cfg.stipple && a_cfg.stipple.enabled)",
+      "  {",
+      "    l_hatch = CONTOURS.apply_stipple(a_hatch, a_cfg.stipple, l_seed, a_cfg.start_point ? a_cfg.start_point.mode : 'off');"
+     ],
+     "marks": [
+      3
+     ]
+    },
+    {
+     "file": "lib/exposure/contours.js",
+     "start": 151,
+     "end": 170,
+     "lines": [
+      "exports.apply_stipple = function(a_hatch, a_stipple, a_seed, a_start_mode)",
+      "{",
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  if (a_hatch.isEmpty()) return r_hatch;",
+      "  // Last argument: maximum number of segments per result block",
+      "  // (0 = no limit).",
+      "  a_hatch.lineStippling(r_hatch, a_stipple.length, a_stipple.overlap, a_stipple.count,",
+      "    a_stipple.random_start === true, RANDOM.to_builtin_seed(a_seed), 0);",
+      "",
+      "  // Dashes are open paths. The start point history (post-processing)",
+      "  // only works on closed contours and has no effect on them.",
+      "  // warning_once: the hint is printed only once per script context,",
+      "  // not once per contour (that would flood the log).",
+      "  if ((a_start_mode === 'previous') || (a_start_mode === 'random_previous'))",
+      "  {",
+      "    LOG.warning_once('stipple_start',",
+      "      'Line stipple creates open paths: the start point mode \"previous layers\" has no effect on stippled contours.');",
+      "  }",
+      "  return r_hatch;",
+      "};"
+     ],
+     "marks": [
+      6,
+      11,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "together",
+   "title": "Stipple and start point history do not mix",
+   "scene": {
+    "mode": "stipple",
+    "dash": 2,
+    "passes": 2,
+    "progress": 100
+   },
+   "notes": [
+    "Dashes are open paths. The history step only moves the start of <i>closed</i> contours, so with the stipple on, the modes <i>Previous layers</i> and <i>Random + previous layers</i> have no effect on that contour. <code>apply_stipple</code> writes a warning to the Build Style Log once. In the video this is the case after the second change: the stipple wins.",
+    "With <i>Random dash start</i> on, the dash pattern itself starts at a random position, so the dash ends do not line up from layer to layer either."
+   ],
+   "ranges": [
+    {
+     "file": "main/postprocess.js",
+     "start": 435,
+     "end": 437,
+     "lines": [
+      "    // Only closed contours have a start point that can be moved; hatch",
+      "    // lines and open paths (e.g. stippled contours) are skipped.",
+      "    if (l_poly.getPolylineMode() !== POLY_IT.nPolyClosed) continue;"
+     ],
+     "marks": [
+      2
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "history",
+   "title": "Spread the seams over more layers by default",
+   "why": "A seam that comes back every fourth layer can still show; compare more layers.",
+   "result": "New profiles use <i>Random + previous layers</i>, keep 2 mm away from the start points of the last 10 layers. Try the same values in the explainer.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 140,
+     "before": "  start_point_mode: 'start_mode_random', history_layer_count: 3, min_start_distance: 1.0,",
+     "after": "  start_point_mode: 'start_mode_random_previous_layers', history_layer_count: 10, min_start_distance: 2.0,"
+    }
+   ]
+  },
+  {
+   "id": "stipple_on",
+   "title": "Line stipple on for every contour type",
+   "why": "Parts with many thin walls, where the borders overheat.",
+   "result": "First border, following borders and fill contours start with the stipple switched on (1 mm dashes, 2 passes).",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 129,
+     "before": "  FACTORY.create_stipple_group(a_grp, CHILD_ID.STIPPLE, text, {}, FLAGS.OPT_OFF);",
+     "after": "  FACTORY.create_stipple_group(a_grp, CHILD_ID.STIPPLE, text, {}, FLAGS.OPT_ON);"
+    }
+   ]
+  },
+  {
+   "id": "dash",
+   "title": "Longer dashes, three passes",
+   "why": "Fewer dash ends (fewer start and stop marks) while each dash still cools.",
+   "result": "3 mm dashes in three passes, each 0.05 mm longer so that neighbouring dashes overlap and no gap stays unmelted.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 136,
+     "before": "  stipple_length: 1.0, stipple_overlap: 0.0, stipple_count: 2, stipple_random_start: true,",
+     "after": "  stipple_length: 3.0, stipple_overlap: 0.05, stipple_count: 3, stipple_random_start: true,"
+    }
+   ]
+  }
+ ]
+}

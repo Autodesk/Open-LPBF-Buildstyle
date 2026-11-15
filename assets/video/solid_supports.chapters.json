@@ -1,0 +1,57 @@
+{
+ "duration": 55.63,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "The same plate, now on six 3 x 3 mm support pillars"
+  },
+  {
+   "t": 5.04,
+   "caption": "Layer at z 2 mm: every pillar is filled with support hatch (dark grey)"
+  },
+  {
+   "t": 8.05,
+   "caption": "Meander: 0.2 mm apart, right up to the pillar outline"
+  },
+  {
+   "t": 13.95,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 18.34,
+   "caption": "Solid supports: no border, only an inset and a hatch"
+  },
+  {
+   "t": 22.05,
+   "caption": "Inset before hatching: type 0.5 mm"
+  },
+  {
+   "t": 28.21,
+   "caption": "Support hatching › Pattern: Meander → Offset"
+  },
+  {
+   "t": 36.91,
+   "caption": "Offset draws rings parallel to the outline"
+  },
+  {
+   "t": 38.41,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 39.61,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 40.57,
+   "caption": "After: smaller hatch areas, 120 mm of lines instead of 270 mm"
+  },
+  {
+   "t": 43.6,
+   "caption": "Each pillar: 0.5 mm free at the edge, five offset rings inside"
+  },
+  {
+   "t": 50.1,
+   "caption": "Toolpaths in 3D up to the plate"
+  }
+ ]
+}

@@ -1,0 +1,379 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "top",
+    "view": "plate",
+    "follow": 1
+   },
+   "notes": [
+    "Following borders are off by default (<code>FLAGS.OPT_OFF</code>): a new profile has only the first border. Switched on, there is one ring, 0.08 mm inside the first border.",
+    "<code>first_offset</code> is the gap to the first border, <code>following_offset</code> the gap between two following borders. The same sub-groups as for the first border are added: Layer skip, Line stipple and Start point shift."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 162,
+     "end": 174,
+     "lines": [
+      "// 3. Following borders (2nd .. N-th border)",
+      "// Off by default. first_offset: distance from the first border (mm),",
+      "// following_offset: distance between two following borders (mm). An",
+      "// offset a bit smaller than the track width (0.08 mm here) lets the",
+      "// rings overlap, so there is no gap between them.",
+      "// alternate_per_contour: reverse the direction from ring to ring.",
+      "var border_following_group = FACTORY.create_top_level_group('grp_border_following', text, FLAGS.OPT_OFF);",
+      "FACTORY.add_int(border_following_group, text, 'border_count', 1, 20, 1, '');",
+      "FACTORY.add_real(border_following_group, text, 'first_offset', 0.0, 5.0, 0.08, 'unit_mm');",
+      "FACTORY.add_real(border_following_group, text, 'following_offset', 0.0, 5.0, 0.08, 'unit_mm');",
+      "FACTORY.add_bool(border_following_group, text, 'alternate_per_layer', true);",
+      "FACTORY.add_bool(border_following_group, text, 'alternate_per_contour', false);",
+      "add_contour_children(border_following_group);"
+     ],
+     "marks": [
+      1,
+      2,
+      6,
+      7,
+      8,
+      9
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "mode": "top",
+    "view": "plate",
+    "follow": 3
+   },
+   "notes": [
+    "The group becomes <code>part.border_following</code>. The dialog name <i>border_count</i> becomes <code>count</code>."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 223,
+     "end": 232,
+     "lines": [
+      "    border_following: {",
+      "      enabled: l_bo.isGrpEnabled(),",
+      "      count: l_bo.getParamVal('border_count'),",
+      "      first_offset: l_bo.getParamVal('first_offset'),",
+      "      following_offset: l_bo.getParamVal('following_offset'),",
+      "      alternate_per_layer: l_bo.getParamVal('alternate_per_layer'),",
+      "      alternate_per_contour: l_bo.getParamVal('alternate_per_contour'),",
+      "      layer_skip: l_bo_children.layer_skip,",
+      "      stipple: l_bo_children.stipple,",
+      "      start_point: l_bo_children.start_point"
+     ],
+     "marks": [
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "id": "insets",
+   "title": "Where every ring runs",
+   "scene": {
+    "mode": "top",
+    "view": "chamfer",
+    "follow": 3
+   },
+   "notes": [
+    "<code>compute_insets</code> measures every ring from the original outline: ring i lies at first + first_offset + (i − 1) · following_offset. With b = 0.06 and 0.08 mm offsets: 0.14, 0.22 and 0.30 mm, exactly as in the video.",
+    "Fill contours and the hatch continue inside the innermost following border, so three borders move the hatch from 0.11 mm to 0.35 mm."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 256,
+     "end": 267,
+     "lines": [
+      "  let l_innermost = r_ins.first;",
+      "  if (l_bo.enabled)",
+      "  {",
+      "    // Ring i (1-based): first_offset from the first border, then one",
+      "    // following_offset per additional ring.",
+      "    for (let i = 1; i <= l_bo.count; ++i)",
+      "    {",
+      "      l_innermost = r_ins.first + l_bo.first_offset + (i - 1) * l_bo.following_offset;",
+      "      r_ins.following.push(l_innermost);",
+      "    }",
+      "  }",
+      "  // Fill contours continue inside the innermost border."
+     ],
+     "marks": [
+      7
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 284,
+     "end": 284,
+     "lines": [
+      "  r_ins.hatch = l_innermost + a_part.hatching.hatch_offset;"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rings",
+   "title": "One offset per ring",
+   "scene": {
+    "mode": "top",
+    "view": "tab",
+    "follow": 3
+   },
+   "notes": [
+    "<code>process_contour_rings</code> serves both following borders and fill contours. Every ring is a fresh offset of the island by its inset (<code>make_contour_hatch</code>), not an offset of the previous ring.",
+    "Where the part is too narrow for an inset, the offset is empty and that ring simply ends; in the 1 mm tab the hatch strip in the middle is only 0.3 mm wide."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 350,
+     "end": 361,
+     "lines": [
+      "function process_contour_rings(a_ctx, a_island, a_result, a_cfg, a_insets, a_bsid, a_bsid_ds, a_split, a_isl_info)",
+      "{",
+      "  if (!a_cfg.enabled || !LAYER_SKIP.is_active(a_ctx.layer_index, a_cfg.layer_skip)) return;",
+      "  let l_split_info = { islid: a_isl_info.islid, bounds: a_isl_info.bounds, ds: a_isl_info.ds, split: a_split };",
+      "  for (let i = 0; i < a_insets.length; ++i)",
+      "  {",
+      "    // The ring is empty if the island is too small for this inset;",
+      "    // emit_contour then does nothing.",
+      "    let l_res = CONTOURS.make_contour_hatch(a_island, a_insets[i]);",
+      "    emit_contour(a_ctx, a_result, l_res.hatch, a_cfg, i, a_bsid, a_bsid_ds, l_split_info);",
+      "  }",
+      "}"
+     ],
+     "marks": [
+      2,
+      7,
+      8,
+      9
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 518,
+     "end": 519,
+     "lines": [
+      "  process_contour_rings(a_ctx, a_island, a_result, l_part.border_following, l_insets.following,",
+      "    BSID.border_following, BSID.border_following_ds, l_border_split, l_isl_info);"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "id": "direction",
+   "title": "Direction and seed of each ring",
+   "scene": {
+    "mode": "section",
+    "follow": 3
+   },
+   "notes": [
+    "<code>emit_contour</code> passes the ring index on: with <code>alternate_per_contour</code> neighbouring rings run in opposite directions, and every ring gets its own random start point, so the seams of the rings do not line up.",
+    "The section shows why the 0.08 mm spacing is smaller than the track: neighbouring rings overlap and leave no unmelted powder between them."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 198,
+     "end": 211,
+     "lines": [
+      "function emit_contour(a_ctx, a_result, a_hatch, a_cfg, a_ring, a_bsid, a_bsid_ds, a_isl_info)",
+      "{",
+      "  if (a_hatch.isEmpty()) return;",
+      "  // The ring index is part of the seed, so every ring gets its own start point.",
+      "  // a_bsid * 1000 + a_ring keeps the values of different contour types",
+      "  // apart (fewer than 1000 rings per type).",
+      "  let l_seed = RANDOM.make_seed(a_ctx.layer_nr, a_isl_info.islid, a_bsid * 1000 + a_ring);",
+      "  CONTOURS.apply_direction_and_start(a_hatch, {",
+      "    alternate_per_layer: a_cfg.alternate_per_layer === true,",
+      "    alternate_per_contour: a_cfg.alternate_per_contour === true,",
+      "    layer_index: a_ctx.layer_index,",
+      "    ring_index: a_ring,",
+      "    start_point: a_cfg.start_point,",
+      "    seed: l_seed"
+     ],
+     "marks": [
+      4,
+      6,
+      9,
+      11
+     ]
+    },
+    {
+     "file": "lib/exposure/contours.js",
+     "start": 105,
+     "end": 130,
+     "lines": [
+      "exports.apply_direction_and_start = function(a_hatch, a_opts)",
+      "{",
+      "  if (a_hatch.isEmpty()) return;",
+      "",
+      "  // Odd layer / ring indices request a flip (index % 2 === 1).",
+      "  let l_flip_layer = (a_opts.alternate_per_layer === true) && ((a_opts.layer_index % 2) === 1);",
+      "  let l_flip_contour = (a_opts.alternate_per_contour === true) && ((a_opts.ring_index % 2) === 1);",
+      "  if (l_flip_layer !== l_flip_contour)",
+      "  {",
+      "    // flip(false, true): flip every contour, keep the order of the contours.",
+      "    a_hatch.flip(false, true);",
+      "  }",
+      "",
+      "  // A missing start_point object is treated like 'off' (keep the start",
+      "  // point that the geometry functions produced).",
+      "  let l_mode = a_opts.start_point ? a_opts.start_point.mode : 'off';",
+      "  if ((l_mode === 'random') || (l_mode === 'random_previous'))",
+      "  {",
+      "    // 'random_previous' gets a random start here as a first guess; the",
+      "    // post-processing may move it again based on the previous layers.",
+      "    // The seed is derived from layer, island and ring, so the result is",
+      "    // reproducible: recalculating a layer gives the same start points.",
+      "    // For closed polygons one of the existing polygon points is chosen.",
+      "    a_hatch.setRandomStartPoint(HATCH.nLoopModeFlagClosedPolygon, RANDOM.to_builtin_seed(a_opts.seed));",
+      "  }",
+      "};"
+     ],
+     "marks": [
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Laser settings and order",
+   "scene": {
+    "mode": "section",
+    "follow": 3
+   },
+   "notes": [
+    "Following borders (BSID 200) run at 180 W and 800 mm/s, between the hatch and the first border in energy. Scan order 70 places them after the fill contours (60) and before the first border (80): the part is exposed from the inside out."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 108,
+     "end": 109,
+     "lines": [
+      "  make_entry('border_following',    200, 'border_following', false, 180,  800, 70, [220,  20,  40]),",
+      "  make_entry('border_following_ds', 201, 'border_following', true,  100,  900, 71, [240, 150,  90]),"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "on",
+   "title": "Two following borders in every new profile",
+   "why": "A thicker, denser wall is the standard for your parts.",
+   "result": "New profiles start with the group switched on and two rings at 0.14 and 0.22 mm. Set Following borders to 2 in <b>Try it</b> to see the result.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 168,
+     "before": "var border_following_group = FACTORY.create_top_level_group('grp_border_following', text, FLAGS.OPT_OFF);",
+     "after": "var border_following_group = FACTORY.create_top_level_group('grp_border_following', text, FLAGS.OPT_ON);"
+    },
+    {
+     "file": "main/param_groups.js",
+     "line": 169,
+     "before": "FACTORY.add_int(border_following_group, text, 'border_count', 1, 20, 1, '');",
+     "after": "FACTORY.add_int(border_following_group, text, 'border_count', 1, 20, 2, '');"
+    }
+   ]
+  },
+  {
+   "id": "spacing",
+   "title": "Spacing for a wider melt track",
+   "why": "With a track of about 0.15 mm the rings can be further apart and still overlap.",
+   "result": "Rings 0.1 mm apart. Check the overlap in the Section view: 0.10 mm spacing still overlaps a 0.12 mm track by 20 µm.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 170,
+     "before": "FACTORY.add_real(border_following_group, text, 'first_offset', 0.0, 5.0, 0.08, 'unit_mm');",
+     "after": "FACTORY.add_real(border_following_group, text, 'first_offset', 0.0, 5.0, 0.1, 'unit_mm');"
+    },
+    {
+     "file": "main/param_groups.js",
+     "line": 171,
+     "before": "FACTORY.add_real(border_following_group, text, 'following_offset', 0.0, 5.0, 0.08, 'unit_mm');",
+     "after": "FACTORY.add_real(border_following_group, text, 'following_offset', 0.0, 5.0, 0.1, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "alternate",
+   "title": "Alternate the direction from ring to ring",
+   "why": "Opposite directions on neighbouring rings even out the heat input along the wall.",
+   "result": "Ring 1 and ring 2 now run in opposite directions on every layer (on top of the per-layer flip).",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 173,
+     "before": "FACTORY.add_bool(border_following_group, text, 'alternate_per_contour', false);",
+     "after": "FACTORY.add_bool(border_following_group, text, 'alternate_per_contour', true);"
+    }
+   ]
+  },
+  {
+   "id": "power",
+   "title": "Slower following borders",
+   "why": "More energy per mm for a denser outer wall.",
+   "result": "Following border default 700 mm/s. For one profile, change Scanning › Following border › speed in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 108,
+     "before": "  make_entry('border_following',    200, 'border_following', false, 180,  800, 70, [220,  20,  40]),",
+     "after": "  make_entry('border_following',    200, 'border_following', false, 180,  700, 70, [220,  20,  40]),"
+    }
+   ]
+  }
+ ]
+}

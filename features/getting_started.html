@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Getting started · Open LPBF Buildstyle for Autodesk Fusion</title>
+  <link rel="stylesheet" href="../assets/css/site.css?v=20261115f">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="../index.html">Open LPBF Buildstyle<span>for Autodesk Fusion</span></a>
+    <nav>
+      <a href="../index.html">Overview</a>
+      <a href="../tutorials.html">Tutorials</a>
+      <a href="../partners.html">Partners</a>
+      <a href="getting_started.html" class="current">Getting started</a>
+      <a href="build_with_ai.html">Build with AI</a>
+    </nav>
+  </header>
+
+  <section class="feature-head">
+    <div class="crumb">Start here</div>
+    <h1>Getting started with the buildstyle</h1>
+    <p class="lead">From the repository to the first toolpath package in eight steps: get the project, open and
+      compile it in Advanced Toolpath Utility (ATU), load a part, give it a parameter profile, build the exposures,
+      change a parameter, export the result and find the code behind it. Every step has a short video of it in
+      ATU; click a line under a video to jump there. Prefer one piece?
+      <a href="../assets/video/getting_started.mp4">Watch the whole workflow</a> (4 min).</p>
+  </section>
+
+  <main class="stack">
+    <!-- written guide, one video per step -->
+    <article class="card guide">
+      <h2>Step by step</h2>
+      <div class="body">
+        <h3 id="get"><span class="n">1</span>Get the buildstyle</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-get" src="../assets/video/getting_started_get.mp4" poster="../assets/video/getting_started_get.jpg"
+                   data-chapters="../assets/video/getting_started_get.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-get"></ol>
+        </div>
+        <p>The buildstyle is a git repository:
+          <a href="https://github.com/Autodesk/Open-LPBF-Buildstyle">github.com/Autodesk/Open-LPBF-Buildstyle</a>.
+          Clone it, or download it as a ZIP from the repository page and unpack it.</p>
+        <figure class="code"><pre>git clone https://github.com/Autodesk/Open-LPBF-Buildstyle.git</pre></figure>
+        <p>Everything ATU needs is at the top of the repository: the project file <code>OSS_MPBF_01.fsp</code>,
+          the entry points in <code>main</code>, the reusable modules in <code>lib</code> and the texts of the user
+          interface in <code>localization</code>. Work on a git branch or a copy if you plan to change the code.</p>
+
+        <h3 id="open"><span class="n">2</span>Open and compile the project</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-open" src="../assets/video/getting_started_open.mp4" poster="../assets/video/getting_started_open.jpg"
+                   data-chapters="../assets/video/getting_started_open.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-open"></ol>
+        </div>
+        <p>In ATU choose <b>File › Open › Project…</b> and select <code>OSS_MPBF_01.fsp</code>. ATU opens one
+          project at a time; while one is open, <i>Project…</i> is greyed out, so <b>File › Close Project</b>
+          first. The <b>Project Explorer</b> shows the folders <code>main</code>, <code>lib</code> and
+          <code>localization</code>.</p>
+        <p>Click <b>Compile</b> in the toolbar (also <b>Project › Compile</b>). Compiling loads the scripts and
+          declares the parameters; compile again after every change to the code. The <b>Build Style Log</b> at the
+          bottom of the window then reports <i>Compiling successful.</i></p>
+
+        <h3 id="part"><span class="n">3</span>Load a part and set the layer thickness</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-part" src="../assets/video/getting_started_part.mp4" poster="../assets/video/getting_started_part.jpg"
+                   data-chapters="../assets/video/getting_started_part.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-part"></ol>
+        </div>
+        <p>Open <b>View › Data Management › Input Geometry Files</b> and click <b>Load…</b>. Choose an STL, PLY, OBJ
+          or 3MF file; the <b>Import geometry</b> dialog that follows sets the <b>Layer thickness (µm)</b>, the
+          thickness the part is sliced with, and shows the type of every object, here <i>Part (solid)</i>. The
+          videos of these pages use 30 µm. After OK the table lists the file as a build part, and
+          <b>Thickness (µm)</b> below the list shows its layer thickness. <b>+</b> adds a further build part,
+          <b>Unload</b> removes the selected one.</p>
+        <p>Support structures are loaded the same way, with a support type instead of <i>Part (solid)</i>, see
+          <a href="wall_supports.html">wall supports</a> and <a href="solid_supports.html">solid supports</a>.</p>
+
+        <h3 id="profile"><span class="n">4</span>Create a parameter profile and assign it</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-profile" src="../assets/video/getting_started_profile.mp4" poster="../assets/video/getting_started_profile.jpg"
+                   data-chapters="../assets/video/getting_started_profile.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-profile"></ol>
+        </div>
+        <p>All settings of the buildstyle live in parameter profiles. The project comes with a profile called
+          <i>default</i> that cannot be edited, so make your own copy: in the <b>Exposure Preview</b> click
+          <b>Manage Profiles…</b>, select <i>default</i>, click <b>Duplicate…</b> and type a <b>Name of copy</b>.</p>
+        <p>Then click <b>Assign Profiles…</b>. The table assigns a <b>Parameter Profile</b> to every build part. Below
+          it, <b>Platform Parameter</b> selects the profile whose <i>Platform Parameter</i> groups drive the whole
+          build: <a href="laser_timing.html">laser timing</a>, gas flow and
+          <a href="build_order.html">build order</a>, and the export. Pick your profile in both places and confirm
+          with <b>OK</b>.</p>
+        <p class="note">Every feature page assumes this setup: the profile you edit is assigned to the part and is
+          also the platform profile. A platform parameter changed in a profile that is not the platform profile has
+          no effect.</p>
+
+        <h3 id="build"><span class="n">5</span>Build and inspect the exposures</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-build" src="../assets/video/getting_started_build.mp4" poster="../assets/video/getting_started_build.jpg"
+                   data-chapters="../assets/video/getting_started_build.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-build"></ol>
+        </div>
+        <p>Click <b>Execute</b> in the toolbar. Under <b>Steps</b> the dialog lists the parts of a run:
+          <i>Execute Preprocessing</i>, <i>Calculate Exposure Data</i>, <i>Execute Postprocessing</i> and
+          <i>Export Data</i>; keep the export off for now. <b>Exposure Calculation Range</b> sets the layers: for the
+          whole part tick <i>Use bottom layer</i> for the start and <i>Use top layer</i> for the end. Click
+          <b>OK</b>. The dialog keeps its settings for the next run. In the video, recorded with the previous version
+          of the buildstyle, the Build Style Log shows the estimated exposure time, 0:14:54 for the hatch plate. The
+          current version writes the estimate to <code>export_info.json</code> when you export (see
+          <a href="export_formats.html">Export formats</a>).</p>
+        <p>The <b>Exposure Preview</b> shows one layer at a time; the slider on its right changes the layer. The
+          colours are the vector types (build style ids, set in <code>main/vector_types.js</code>): borders red,
+          fill contours orange, volume hatch green, upskin yellow, downskin hatch blue, supports grey. The
+          <b>3D View</b> shows the part in 3D and can show the toolpaths of the layers as well.</p>
+
+        <h3 id="change"><span class="n">6</span>Change a parameter and rebuild</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-change" src="../assets/video/getting_started_change.mp4" poster="../assets/video/getting_started_change.jpg"
+                   data-chapters="../assets/video/getting_started_change.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-change"></ol>
+        </div>
+        <p>Click <b>Open Profile</b> in the Exposure Preview and choose your profile. The dialog shows the parameter
+          tree: build part parameters first (borders, hatching, skins, supports, scanning), then the platform
+          parameters. In the video <b>Hatching › Volume › Pattern</b> goes from <i>Meander</i> to
+          <i>Chessboard</i>. Confirm with <b>OK</b> and click <b>Execute</b> again: the preview shows the new hatch.</p>
+        <p>Every feature page explains its parameters with an interactive model, starting with
+          <a href="hatching.html">hatching</a>. The <a href="../tutorials.html">tutorials</a> page lists all features.</p>
+
+        <h3 id="export"><span class="n">7</span>Export a toolpath package</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-export" src="../assets/video/getting_started_export.mp4" poster="../assets/video/getting_started_export.jpg"
+                   data-chapters="../assets/video/getting_started_export.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-export"></ol>
+        </div>
+        <p>Click <b>Execute</b> once more, tick <b>Export Data</b>, choose a filter under <b>Use Export Function of
+          Current Project</b> and a file with <b>Select Export Target…</b>, then <b>OK</b>. The buildstyle writes LSR,
+          CLI+ or 3MF toolpath packages with the parameters and a build job image. The dialog keeps the export
+          switched on for the next run. <a href="export_formats.html">Export formats</a> shows what is in each
+          package.</p>
+
+        <h3 id="code"><span class="n">8</span>Find the code and change a default</h3>
+        <div class="step-video">
+          <div class="video-wrap">
+            <video id="v-code" src="../assets/video/getting_started_code.mp4" poster="../assets/video/getting_started_code.jpg"
+                   data-chapters="../assets/video/getting_started_code.chapters.json"
+                   muted playsinline controls preload="metadata"></video>
+          </div>
+          <ol class="steps" data-for="v-code"></ol>
+        </div>
+        <p>The buildstyle is plain JavaScript. Double-click a file in the Project Explorer to open it in ATU, or open
+          the <code>project</code> folder in an editor such as VS Code: ATU writes <code>jsconfig.json</code> and type
+          declarations into the folder, so the editor can offer code completion.</p>
+        <table class="params">
+          <thead><tr><th>File</th><th>What is in it</th></tr></thead>
+          <tbody>
+            <tr><td><code>main/main.js</code></td><td>The entry points that ATU calls, and a glossary of the terms.</td></tr>
+            <tr><td><code>main/param_groups.js</code></td><td>The parameter tree with the default values.</td></tr>
+            <tr><td><code>main/vector_types.js</code></td><td>The vector types (build style ids) with their default laser, power and speed.</td></tr>
+            <tr><td><code>main/settings.js</code></td><td>Reads the parameters into settings objects and checks them.</td></tr>
+            <tr><td><code>main/exposure_layer.js</code></td><td>Builds the vectors of one layer: contours, hatching, skins, supports.</td></tr>
+            <tr><td><code>main/postprocess.js</code></td><td>Exposure order, power optimization and the time estimate.</td></tr>
+            <tr><td><code>main/export_main.js</code></td><td>The export filters; the writers are in <code>lib/export</code>.</td></tr>
+            <tr><td><code>localization/lang_en.json</code></td><td>The names and descriptions shown in the profile dialog.</td></tr>
+          </tbody>
+        </table>
+        <p>Messages of the buildstyle, such as warnings about settings that do not fit together, go to the
+          <b>Build Style Log</b>. The estimated exposure time is written to <code>export_info.json</code> on export.</p>
+        <div class="workflow">
+          <b>How to change a default</b>
+          <ol>
+            <li>Find the parameter in <code>main/param_groups.js</code> (or the vector type in
+              <code>main/vector_types.js</code>) and edit its default value.</li>
+            <li>Save the file and compile the project in ATU.</li>
+            <li>Create a new profile to get the new defaults: existing profiles keep the values they have.</li>
+            <li>Rebuild and check the Exposure Preview.</li>
+          </ol>
+        </div>
+        <p>Every feature page ends with <b>Change it yourself</b>: recipes with the exact edit, for example a
+          <a href="scanning.html#recipes">faster volume hatch</a> or
+          <a href="fill_contours.html#recipes">fill contours on by default</a>, and a walk through the code under
+          <b>How the code works</b>.</p>
+      </div>
+    </article>
+  </main>
+
+  <footer>Open LPBF Buildstyle for Autodesk Fusion documentation</footer>
+
+  <script type="module" src="../assets/js/video-steps.js"></script>
+</body>
+</html>

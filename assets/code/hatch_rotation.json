@@ -1,0 +1,386 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare rotation and window",
+   "scene": {
+    "mode": "dial",
+    "limit": false
+   },
+   "notes": [
+    "Every hatch group gets a child group <i>Rotation</i> with start angle and angle increment, and inside it the optional group <i>Limitation window</i>, off by default (<code>OPT_OFF</code>).",
+    "The defaults: +67° per layer, and a window 120° wide around the window direction 0° relative to the gas flow. Like the start angle, the window direction is a hatch angle value, so 0° means lines across the flow."
+   ],
+   "ranges": [
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 141,
+     "end": 150,
+     "lines": [
+      "  // T4 rotation",
+      "  // MPBF background: 67 degrees has no common divisor with 180, so the",
+      "  // hatch direction repeats only after 180 layers. Default window",
+      "  // (off by default): hatch LINES perpendicular to the gas flow (gas flow",
+      "  // angle + 90 degrees), 120 degrees wide -> the lines are never closer",
+      "  // than 30 degrees to the gas flow direction (see pattern_rotation.js).",
+      "  start_angle: 0.0, angle_increment: 67.0,",
+      "  // limit_center_angle 0 relative to the gas flow = hatch lines perpendicular",
+      "  // to the gas flow (hatch angle value convention, see pattern_rotation.js).",
+      "  limit_center_mode: 'limit_center_gas_flow', limit_center_angle: 0.0, limit_width: 120.0,"
+     ],
+     "marks": [
+      6,
+      9
+     ]
+    },
+    {
+     "file": "lib/params/param_factories.js",
+     "start": 440,
+     "end": 457,
+     "lines": [
+      "exports.create_rotation_group = function(a_parent_grp, a_group_id, a_text, a_defaults, a_flags)",
+      "{",
+      "  let l_grp = create_child(a_parent_grp, a_group_id, a_text, choose_flags(a_flags, exports.FLAGS.DEF));",
+      "  exports.add_real(l_grp, a_text, 'start_angle', -360.0, 360.0,",
+      "    get_default(a_defaults, 'start_angle'), 'unit_deg');",
+      "  exports.add_real(l_grp, a_text, 'angle_increment', -360.0, 360.0,",
+      "    get_default(a_defaults, 'angle_increment'), 'unit_deg');",
+      "",
+      "  // The window is a nested optional group (check box), off by default.",
+      "  let l_limit = create_child(l_grp, exports.CHILD_ID.ROTATION_LIMIT, a_text, exports.FLAGS.OPT_OFF);",
+      "  exports.add_choice(l_limit, a_text, 'limit_center_mode', exports.LIMIT_CENTER_KEYS,",
+      "    get_default(a_defaults, 'limit_center_mode'));",
+      "  exports.add_real(l_limit, a_text, 'limit_center_angle', -360.0, 360.0,",
+      "    get_default(a_defaults, 'limit_center_angle'), 'unit_deg');",
+      "  exports.add_real(l_limit, a_text, 'limit_width', 1.0, 179.0,",
+      "    get_default(a_defaults, 'limit_width'), 'unit_deg');",
+      "  return l_grp;",
+      "};"
+     ],
+     "marks": [
+      9,
+      14,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the settings and the gas flow",
+   "scene": {
+    "mode": "dial",
+    "limit": true,
+    "width": 120
+   },
+   "notes": [
+    "<code>read_rotation</code> returns the angles and a <code>limit</code> object. The window direction is relative to the gas flow (<code>'gas_flow'</code>) or absolute, measured from +X.",
+    "The gas flow angle is a platform parameter: it comes from the platform profile, not from the part's profile.",
+    "<code>read_hatch</code> adds <code>against_gas_flow</code> to the rotation: it is the hatch group's <i>Optimized sorting</i> switch, on by default."
+   ],
+   "ranges": [
+    {
+     "file": "lib/params/param_readers.js",
+     "start": 251,
+     "end": 264,
+     "lines": [
+      "  let l_limit_grp = a_grp.getChildGrp(FACTORY.CHILD_ID.ROTATION_LIMIT);",
+      "  // Defaults for the case that the rotation group has no limit child group.",
+      "  let l_limit = { enabled: false, center_mode: 'gas_flow',",
+      "    center_angle: table_default('limit_center_angle'), width: table_default('limit_width') };",
+      "  if (is_group(l_limit_grp))",
+      "  {",
+      "    l_limit = {",
+      "      enabled: l_limit_grp.isGrpEnabled(),",
+      "      center_mode: pick(S_LIMIT_CENTER_MODES, read_choice_index(l_limit_grp, 'limit_center_mode'), 'gas_flow'),",
+      "      center_angle: l_limit_grp.getParamVal('limit_center_angle'),",
+      "      width: l_limit_grp.getParamVal('limit_width')",
+      "    };",
+      "  }",
+      "  return {"
+     ],
+     "marks": [
+      2,
+      3,
+      7,
+      8,
+      10
+     ]
+    },
+    {
+     "file": "lib/params/param_readers.js",
+     "start": 360,
+     "end": 365,
+     "lines": [
+      "  let l_optimized = a_grp.getParamVal('optimized_sorting');",
+      "  // Optimized sorting also exposes the lines of every block against the",
+      "  // gas flow: the rotation turns angles that would expose downstream by",
+      "  // 180 degrees (same lines, see pattern_rotation.js 'Exposure order').",
+      "  let l_rotation = exports.read_rotation(a_grp.getChildGrp(FACTORY.CHILD_ID.ROTATION));",
+      "  l_rotation.against_gas_flow = (l_optimized === true);"
+     ],
+     "marks": [
+      5
+     ]
+    },
+    {
+     "file": "main/settings.js",
+     "start": 320,
+     "end": 320,
+     "lines": [
+      "    gas_flow: { angle: G.gas_flow_group.getParamVal('gas_flow_angle') },"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "call",
+   "title": "One angle per layer",
+   "scene": {
+    "mode": "strip",
+    "limit": false
+   },
+   "notes": [
+    "Before the hatch of an area is created, <code>get_line_angle</code> computes the angle of this layer from the layer index and the gas flow angle. The pattern functions get it as <code>line_angle</code>."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 384,
+     "end": 392,
+     "lines": [
+      "  // Hatch angle of this layer: start angle + layer index * increment",
+      "  // (default 67 degrees), optionally kept inside a window, e.g. \"never",
+      "  // parallel to the gas flow\" (lib/exposure/pattern_rotation.js).",
+      "  // MPBF background: rotating the lines from layer to layer avoids that",
+      "  // hatch lines lie exactly on top of each other. The material gets more",
+      "  // uniform and the residual stress (which is highest along the scan",
+      "  // direction) is spread over all directions. 67 degrees is a common",
+      "  // choice because the same angle repeats only after many layers.",
+      "  let l_angle = ROTATION.get_line_angle(a_hatch_cfg.rotation, a_ctx.layer_index, a_ctx.gas_angle, 0.0);"
+     ],
+     "marks": [
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "id": "rotate",
+   "title": "Rotation without a window",
+   "scene": {
+    "mode": "strip",
+    "limit": false,
+    "layer": 49
+   },
+   "notes": [
+    "The raw angle is start angle + layer index × increment. 67 has no common divisor with 180, so the line direction repeats only after 180 layers: 133°, 20°, 87°, 154° in layers 50 to 53 of the video.",
+    "The value is an <i>angle value</i> for the host's hatch function, where 0 means lines parallel to Y. The line direction on screen is the value + 90°."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/pattern_rotation.js",
+     "start": 215,
+     "end": 227,
+     "lines": [
+      "exports.get_line_angle = function(a_rot, a_layer_index, a_gas_angle, a_extra_angle)",
+      "{",
+      "  // Tip: [a_extra_angle] in the JSDoc means \"optional\". If the",
+      "  // caller leaves it out, its value is undefined, so 0 is used instead.",
+      "  let l_extra = (typeof a_extra_angle === 'number') ? a_extra_angle : 0.0;",
+      "  let l_raw = a_rot.start_angle + a_layer_index * a_rot.increment;",
+      "",
+      "  let l_limit = a_rot.limit;",
+      "  // A window that is off, has no valid width or is 180 degrees or wider",
+      "  // does not limit anything: plain rotation plus extra angle.",
+      "  if (!l_limit || !l_limit.enabled || !(l_limit.width > 0.0) || (l_limit.width >= S_LINE_PERIOD))",
+      "  {",
+      "    return against_gas_flow(a_rot, l_raw + l_extra, a_gas_angle);"
+     ],
+     "marks": [
+      5,
+      10
+     ]
+    }
+   ]
+  },
+  {
+   "id": "window",
+   "title": "Squeeze 180° into the window",
+   "scene": {
+    "mode": "strip",
+    "limit": true,
+    "width": 30,
+    "layer": 49
+   },
+   "notes": [
+    "With the window on, the whole 180° cycle of directions is compressed linearly onto the window width (<code>map_into_window</code>). Different directions stay different: with a 30° window, layers 50 to 53 get 97.2°, 78.3°, 89.5° and 100.7°, exactly what the video measures.",
+    "Relative to the gas flow the window center is gas angle + 180° + window direction: the +180° gives the same lines in reverse order, so they are exposed against the flow.",
+    "The code deliberately does not fold the angle back at the window edges: such a fold would map some increments onto a single direction, and every layer would be hatched the same way."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/pattern_rotation.js",
+     "start": 160,
+     "end": 164,
+     "lines": [
+      "function map_into_window(a_d, a_width)",
+      "{",
+      "  let l_p = MATH.mod(a_d + S_LINE_PERIOD / 2.0, S_LINE_PERIOD);",
+      "  return l_p * a_width / S_LINE_PERIOD - a_width / 2.0;",
+      "}"
+     ],
+     "marks": [
+      3
+     ]
+    },
+    {
+     "file": "lib/exposure/pattern_rotation.js",
+     "start": 235,
+     "end": 242,
+     "lines": [
+      "  let l_center = (l_limit.center_mode === 'gas_flow')",
+      "    ? (a_gas_angle + S_AGAINST_FLOW_OFFSET + l_limit.center_angle)",
+      "    : l_limit.center_angle;",
+      "",
+      "  // Distance of the raw angle (plus the sub-group angle) from the",
+      "  // window center, mapped into the window.",
+      "  let l_d_map = map_into_window(l_raw + l_extra - l_center, l_limit.width);",
+      "  return against_gas_flow(a_rot, l_center + l_d_map, a_gas_angle);"
+     ],
+     "marks": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "against",
+   "title": "Turn the order against the gas flow",
+   "scene": {
+    "mode": "strip",
+    "limit": false,
+    "layer": 49
+   },
+   "notes": [
+    "An angle value gives the lines and their order: the host exposes them one after another along (cos a, sin a). If that direction points downstream, <code>against_gas_flow</code> adds 180°: exactly the same lines, exposed in the opposite order.",
+    "That is why the video measures the same line directions as before, but every layer now moves from +X to −X. A direction exactly across the flow is kept."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/pattern_rotation.js",
+     "start": 182,
+     "end": 191,
+     "lines": [
+      "function against_gas_flow(a_rot, a_angle, a_gas_angle)",
+      "{",
+      "  let l_angle = MATH.normalize_deg_360(a_angle);",
+      "  if (a_rot.against_gas_flow !== true) return l_angle;",
+      "  // cos of the angle between the progress direction and the gas flow.",
+      "  // A small tolerance keeps \"exactly across\" stable against rounding.",
+      "  let l_dot = Math.cos(MATH.deg_to_rad(l_angle - a_gas_angle));",
+      "  if (l_dot > S_ACROSS_FLOW_TOL) return MATH.normalize_deg_360(l_angle + S_AGAINST_FLOW_OFFSET);",
+      "  return l_angle;",
+      "}"
+     ],
+     "marks": [
+      7
+     ]
+    }
+   ]
+  },
+  {
+   "id": "subgroups",
+   "title": "Chess fields and hexagons stay inside, too",
+   "scene": {
+    "mode": "dial",
+    "limit": true,
+    "width": 30
+   },
+   "notes": [
+    "Chess and hexagon patterns hatch some cells with an extra +90°, +60° or +120°. <code>angle_with_extra</code> passes that extra angle into the same function, so it is scaled to the window: two chess groups then differ by width / 2 and stay inside the window."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hatch_patterns.js",
+     "start": 83,
+     "end": 87,
+     "lines": [
+      "function angle_with_extra(a_ctx, a_extra)",
+      "{",
+      "  let l_r = a_ctx.rotation;",
+      "  return ROTATION.get_line_angle(l_r.rot, l_r.layer_index, l_r.gas_angle, a_extra);",
+      "}"
+     ],
+     "marks": [
+      3
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "window_on",
+   "title": "Window on by default",
+   "why": "Keep the hatch lines away from the gas flow direction in every new profile.",
+   "result": "The limitation window starts switched on with its defaults: lines within 30° … 150° for a gas flow along X.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 449,
+     "before": "  let l_limit = create_child(l_grp, exports.CHILD_ID.ROTATION_LIMIT, a_text, exports.FLAGS.OPT_OFF);",
+     "after": "  let l_limit = create_child(l_grp, exports.CHILD_ID.ROTATION_LIMIT, a_text, exports.FLAGS.OPT_ON);"
+    }
+   ]
+  },
+  {
+   "id": "narrow",
+   "title": "A narrower default window",
+   "why": "As in the video: hatch lines always nearly perpendicular to the gas flow.",
+   "result": "Lines stay within ±30° of the perpendicular once the window is switched on.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 150,
+     "before": "  limit_center_mode: 'limit_center_gas_flow', limit_center_angle: 0.0, limit_width: 120.0,",
+     "after": "  limit_center_mode: 'limit_center_gas_flow', limit_center_angle: 0.0, limit_width: 60.0,"
+    }
+   ]
+  },
+  {
+   "id": "increment",
+   "title": "Another rotation increment",
+   "why": "Some machines and materials use other increments, for example 90° (cross hatching) or 79°.",
+   "result": "79 has no common divisor with 180 either, so the directions repeat after 180 layers. Try 90 in the explainer: only two directions are left, with or without a window.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "lib/params/param_factories.js",
+     "line": 147,
+     "before": "  start_angle: 0.0, angle_increment: 67.0,",
+     "after": "  start_angle: 0.0, angle_increment: 79.0,"
+    }
+   ]
+  }
+ ]
+}

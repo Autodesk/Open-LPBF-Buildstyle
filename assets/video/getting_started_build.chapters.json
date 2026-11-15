@@ -1,0 +1,21 @@
+{
+ "duration": 23.61,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Execute in the toolbar"
+  },
+  {
+   "t": 3.54,
+   "caption": "Layer range: bottom to top layer, then OK"
+  },
+  {
+   "t": 12.67,
+   "caption": "Build: the Exposure Preview shows the layers"
+  },
+  {
+   "t": 20.61,
+   "caption": "Volume hatch of layer 50: meander lines"
+  }
+ ]
+}

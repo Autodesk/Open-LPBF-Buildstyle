@@ -1,0 +1,17 @@
+{
+ "duration": 32.07,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "In ATU: File › Open › Project…"
+  },
+  {
+   "t": 8.6,
+   "caption": "Select OSS_MPBF_01.fsp"
+  },
+  {
+   "t": 20.23,
+   "caption": "Compile: the Build Style Log reports success"
+  }
+ ]
+}

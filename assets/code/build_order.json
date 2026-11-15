@@ -1,0 +1,448 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Three platform groups",
+   "scene": {
+    "mode": "platform",
+    "border": 80,
+    "gas": 0
+   },
+   "notes": [
+    "Gas flow, build order and scanning order are <i>platform</i> parameters (<code>FLAGS.PLATFORM</code>): they belong to the whole build plate, not to one part. ATU reads them from the profile that is set as the platform profile.",
+    "The scanning order group is generated from the vector type table: one number per vector type, smaller numbers first. The defaults expose supports first, then the hatches, then the contours from the inside out."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 290,
+     "end": 297,
+     "lines": [
+      "var gas_flow_group = FACTORY.create_top_level_group('grp_gas_flow', text, FLAGS.PLATFORM);",
+      "FACTORY.add_real(gas_flow_group, text, 'gas_flow_angle', 0.0, 360.0, 0.0, 'unit_deg');",
+      "",
+      "// 13. Build order",
+      "// sort_models: order the parts along the gas flow (downstream first);",
+      "// not used by the mode 'global' (there the parts are no sort level).",
+      "// build_order_mode: see BUILD_ORDER_KEYS above.",
+      "var build_order_group = FACTORY.create_top_level_group('grp_build_order', text, FLAGS.PLATFORM);"
+     ],
+     "marks": [
+      1
+     ]
+    },
+    {
+     "file": "main/param_groups.js",
+     "start": 298,
+     "end": 299,
+     "lines": [
+      "FACTORY.add_bool(build_order_group, text, 'sort_models', true);",
+      "FACTORY.add_choice(build_order_group, text, 'build_order_mode', exports.BUILD_ORDER_KEYS, 'build_order_platform');"
+     ],
+     "marks": [
+      0,
+      1
+     ]
+    },
+    {
+     "file": "main/param_groups.js",
+     "start": 309,
+     "end": 316,
+     "lines": [
+      "var scanning_order_group = FACTORY.create_top_level_group('grp_scanning_order', text, FLAGS.PLATFORM);",
+      "for (let i = 0; i < VECTOR_TYPES.VECTOR_TYPES.length; ++i)",
+      "{",
+      "  let l_vt = VECTOR_TYPES.VECTOR_TYPES[i];",
+      "  // Name = vector type name, one shared description for all entries.",
+      "  scanning_order_group.createParamInt('order_' + l_vt.key, text('vec_' + l_vt.key),",
+      "    0, 100000, l_vt.scan_order_default, text('order_descr'), '');",
+      "}"
+     ],
+     "marks": [
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the platform settings",
+   "scene": {
+    "mode": "island",
+    "border": 80,
+    "gas": 0
+   },
+   "notes": [
+    "<code>read_platform_settings</code> reads the build order by the index of the chosen option, not by its translated text, so the result does not depend on the user interface language."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 303,
+     "end": 325,
+     "lines": [
+      "  let l_mode_index = G.build_order_group.getParam('build_order_mode').getValueInt();",
+      "  let l_mode = 'platform';",
+      "  if ((l_mode_index >= 0) && (l_mode_index < S_BUILD_ORDER_MODES.length))",
+      "  {",
+      "    l_mode = S_BUILD_ORDER_MODES[l_mode_index];",
+      "  }",
+      "",
+      "  let r_platform = {",
+      "    version: S_SETTINGS_VERSION,",
+      "    // Timing object of lib/time/scanner_delays.js.",
+      "    laser_timing: {",
+      "      jump_speed: G.laser_timing_group.getParamVal('jump_speed'),",
+      "      mark_delay_us: G.laser_timing_group.getParamVal('mark_delay'),",
+      "      jump_delay_us: G.laser_timing_group.getParamVal('jump_delay'),",
+      "      min_jump_delay_us: G.laser_timing_group.getParamVal('min_jump_delay'),",
+      "      jump_length_limit: G.laser_timing_group.getParamVal('jump_length_limit')",
+      "    },",
+      "    gas_flow: { angle: G.gas_flow_group.getParamVal('gas_flow_angle') },",
+      "    build_order: {",
+      "      sort_models: G.build_order_group.getParamVal('sort_models'),",
+      "      mode: l_mode",
+      "    },",
+      "    scanning_order: {},"
+     ],
+     "marks": [
+      4,
+      17,
+      19
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gas",
+   "title": "Downstream first",
+   "scene": {
+    "mode": "island",
+    "border": 80,
+    "gas": 90
+   },
+   "notes": [
+    "<code>flow_direction</code> turns the angle into a unit vector: 0° flows to +X, 90° to +Y. <code>downstream_key</code> is the negative position along that vector, so an ascending sort puts the islands furthest downstream first. The spatter then lands on islands that are already exposed.",
+    "Islands within the same 1 mm band count as equally far downstream; then the island id decides."
+   ],
+   "ranges": [
+    {
+     "file": "lib/geometry/gas_flow.js",
+     "start": 60,
+     "end": 64,
+     "lines": [
+      "exports.flow_direction = function(a_angle_deg)",
+      "{",
+      "  let l_rad = MATH.deg_to_rad(a_angle_deg);",
+      "  return { x: Math.cos(l_rad), y: Math.sin(l_rad) };",
+      "};"
+     ],
+     "marks": [
+      3
+     ]
+    },
+    {
+     "file": "lib/geometry/gas_flow.js",
+     "start": 90,
+     "end": 93,
+     "lines": [
+      "exports.downstream_key = function(a_x, a_y, a_dir)",
+      "{",
+      "  return -(a_x * a_dir.x + a_y * a_dir.y);",
+      "};"
+     ],
+     "marks": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "config",
+   "title": "The sorter settings",
+   "scene": {
+    "mode": "island",
+    "border": 80,
+    "gas": 0
+   },
+   "notes": [
+    "<code>build_sorter_config</code> collects mode, gas direction and scanning order once per call. With <i>Sort models against gas flow</i>, the parts on the plate are ranked along the gas flow as well; the island grid is a single part, so the model rank does not matter here."
+   ],
+   "ranges": [
+    {
+     "file": "main/postprocess.js",
+     "start": 346,
+     "end": 361,
+     "lines": [
+      "function build_sorter_config(a_models, a_platform)",
+      "{",
+      "  let l_gas_dir = GAS_FLOW.flow_direction(a_platform.gas_flow.angle);",
+      "  let l_bounds = [];",
+      "  for (let i = 0; i < a_models.length; ++i)",
+      "  {",
+      "    l_bounds.push(a_models[i] ? a_models[i].info.bounds : undefined);",
+      "  }",
+      "  return {",
+      "    mode: a_platform.build_order.mode,",
+      "    sort_models: a_platform.build_order.sort_models === true,",
+      "    gas_dir: l_gas_dir,",
+      "    scan_order: a_platform.scanning_order,",
+      "    model_rank: SORTER.compute_model_ranks(l_bounds, a_platform.build_order.sort_models === true, l_gas_dir)",
+      "  };",
+      "}"
+     ],
+     "marks": [
+      2,
+      9,
+      12
+     ]
+    }
+   ]
+  },
+  {
+   "id": "keys",
+   "title": "One key tuple per mode",
+   "scene": {
+    "mode": "island",
+    "border": 5,
+    "gas": 0
+   },
+   "notes": [
+    "Every path gets a tuple of numbers; the first entry decides, then the next. <b>Platform</b> starts with the scanning order: all hatches (40) of the plate, then all first borders (80). <b>Island</b> starts with model, supports and the gas flow bucket, and puts the scanning order behind the island id: one island after the other, and inside an island the scanning order decides.",
+    "That is why, in the video, First border 80 → 5 makes every island start with its border: 5 is now smaller than the 40 of the volume hatch."
+   ],
+   "ranges": [
+    {
+     "file": "lib/sorting/exposure_sorter.js",
+     "start": 215,
+     "end": 236,
+     "lines": [
+      "function make_sort_key(a_item, a_cfg)",
+      "{",
+      "  switch (a_cfg.mode)",
+      "  {",
+      "    case 'model':",
+      "      return [a_item.model_rank, a_item.order, a_item.island_bucket, a_item.islid, a_item.orig];",
+      "    case 'island':",
+      "      return [a_item.model_rank, a_item.support_rank, a_item.island_bucket, a_item.islid, a_item.order, a_item.orig];",
+      "    case 'global':",
+      "      // No model, support or island entry: all paths of one vector type",
+      "      // are sorted by their own position only.",
+      "      return [a_item.order, a_item.path_bucket, a_item.cross_key, a_item.orig];",
+      "    default: // 'platform'",
+      "      // sort_models = true: inside one vector type, the gas flow",
+      "      // position is more important than the model order.",
+      "      if (a_cfg.sort_models)",
+      "      {",
+      "        return [a_item.order, a_item.island_bucket, a_item.model_rank, a_item.islid, a_item.orig];",
+      "      }",
+      "      return [a_item.order, a_item.model_rank, a_item.island_bucket, a_item.islid, a_item.orig];",
+      "  }",
+      "}"
+     ],
+     "marks": [
+      6,
+      8,
+      17
+     ]
+    }
+   ]
+  },
+  {
+   "id": "global",
+   "title": "Global: every path by its own position",
+   "scene": {
+    "mode": "global",
+    "border": 80,
+    "gas": 0
+   },
+   "notes": [
+    "The mode <b>Global</b> has no model, support or island entry in its key: after the scanning order come the position of the path <i>itself</i> along the gas flow (1 mm bands) and its position across the flow. <code>make_item</code> computes both from <code>path_center</code>, the centre of the path's own bounds.",
+    "A hatch block is one stripe, chess field or hexagon cell, so the blocks of a long part and of the small parts next to it are exposed in one sweep against the gas flow, as in the second video. On the island grid every island has a single hatch block, so Global differs from Platform only where islands are equally far downstream: there the position across the flow decides instead of the island id."
+   ],
+   "ranges": [
+    {
+     "file": "lib/sorting/exposure_sorter.js",
+     "start": 267,
+     "end": 287,
+     "lines": [
+      "function make_item(a_values, a_orig, a_cfg)",
+      "{",
+      "  // The table keys are strings ('500'), so the BSID number is converted.",
+      "  let l_order = a_cfg.scan_order[String(a_values.bsid)];",
+      "  let l_rank = a_cfg.model_rank[a_values.model_index];",
+      "  let l_path = a_values.path_center ? a_values.path_center : a_values.center;",
+      "  let r_item = {",
+      "    orig: a_orig,",
+      "    model_rank: (typeof l_rank === 'number') ? l_rank : a_values.model_index,",
+      "    order: (typeof l_order === 'number') ? l_order : S_UNKNOWN_ORDER,",
+      "    islid: a_values.islid,",
+      "    island_bucket: GAS_FLOW.bucket(GAS_FLOW.downstream_key(a_values.center.x, a_values.center.y, a_cfg.gas_dir),",
+      "      S_ISLAND_BUCKET_MM),",
+      "    support_rank: a_values.is_support ? 0 : 1,",
+      "    path_bucket: GAS_FLOW.bucket(GAS_FLOW.downstream_key(l_path.x, l_path.y, a_cfg.gas_dir), S_ISLAND_BUCKET_MM),",
+      "    cross_key: GAS_FLOW.cross_key(l_path.x, l_path.y, a_cfg.gas_dir),",
+      "    key: undefined",
+      "  };",
+      "  r_item.key = make_sort_key(r_item, a_cfg);",
+      "  return r_item;",
+      "}"
+     ],
+     "marks": [
+      14,
+      15
+     ]
+    },
+    {
+     "file": "lib/geometry/gas_flow.js",
+     "start": 108,
+     "end": 111,
+     "lines": [
+      "exports.cross_key = function(a_x, a_y, a_dir)",
+      "{",
+      "  return a_x * (-a_dir.y) + a_y * a_dir.x;",
+      "};"
+     ],
+     "marks": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "id": "write",
+   "title": "Write the exposure order",
+   "scene": {
+    "mode": "island",
+    "border": 5,
+    "gas": 90
+   },
+   "notes": [
+    "<code>sort_layer</code> builds the items of all paths of the layer (all parts together, because the laser exposes the plate in one sequence), sorts them and writes the position as <code>_processing_order</code>. No path is moved: the host and the exporters read this number. The colour mode <i>Exposure order</i> in the videos is a colormap of exactly this attribute.",
+    "The sorting is the first step of the post-processing: the laser assignment, the power optimization and the time estimate all work along this order afterwards."
+   ],
+   "ranges": [
+    {
+     "file": "lib/sorting/exposure_sorter.js",
+     "start": 353,
+     "end": 382,
+     "lines": [
+      "exports.sort_layer = function(a_model_data, a_layer_nr, a_cfg)",
+      "{",
+      "  // 'rw' requests writable paths, because the order attribute is written.",
+      "  let l_polys = a_model_data.getLayerPolylineArray(a_layer_nr, POLY_IT.nLayerExposure, 'rw');",
+      "  if (!l_polys || (l_polys.length === 0)) return { ok: true, count: 0 };",
+      "",
+      "  let l_items = [];",
+      "  for (let i = 0; i < l_polys.length; ++i)",
+      "  {",
+      "    let l_poly = l_polys[i];",
+      "    let l_item = make_item({",
+      "      model_index: l_poly.getModelIndex(),",
+      "      bsid: get_int_or_zero(l_poly, ATTR.BSID),",
+      "      islid: get_int_or_zero(l_poly, ATTR.ISLAND_ID),",
+      "      center: get_island_center(l_poly),",
+      "      // Only needed by the mode 'global' (saves one bounds call per path otherwise).",
+      "      path_center: (a_cfg.mode === 'global') ? get_path_center(l_poly) : undefined,",
+      "      is_support: l_poly.getModelSubtype() === MODEL.nSubtypeSupport",
+      "    }, i, a_cfg);",
+      "    l_item.poly = l_poly;",
+      "    l_items.push(l_item);",
+      "  }",
+      "",
+      "  l_items.sort(compare_items);",
+      "  // Position after sorting = exposure order (0 = exposed first).",
+      "  for (let k = 0; k < l_items.length; ++k)",
+      "  {",
+      "    l_items[k].poly.setAttributeInt(ATTR.PROCESSING_ORDER, k);",
+      "  }",
+      "  return { ok: true, count: l_items.length };"
+     ],
+     "marks": [
+      10,
+      27
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "island",
+   "title": "Island by island by default",
+   "why": "Each island is finished before the laser moves on, so its border is melted while the hatch is still warm.",
+   "result": "New profiles start with the build order <i>Island</i>. The platform profile decides, so create the new profile and set it as platform profile.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 299,
+     "before": "FACTORY.add_choice(build_order_group, text, 'build_order_mode', exports.BUILD_ORDER_KEYS, 'build_order_platform');",
+     "after": "FACTORY.add_choice(build_order_group, text, 'build_order_mode', exports.BUILD_ORDER_KEYS, 'build_order_island');"
+    }
+   ]
+  },
+  {
+   "id": "global",
+   "title": "Global by default",
+   "why": "Plates with long parts and striped or chessboard hatches: one sweep against the gas flow over all parts.",
+   "result": "New profiles start with the build order <i>Global</i>: every hatch block and contour is placed by its own position. <i>Sort models against gas flow</i> has no effect in this mode.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 299,
+     "before": "FACTORY.add_choice(build_order_group, text, 'build_order_mode', exports.BUILD_ORDER_KEYS, 'build_order_platform');",
+     "after": "FACTORY.add_choice(build_order_group, text, 'build_order_mode', exports.BUILD_ORDER_KEYS, 'build_order_global');"
+    }
+   ]
+  },
+  {
+   "id": "border_first",
+   "title": "Borders before the hatch",
+   "why": "A defined edge first, then the inside, as in the second change of the video.",
+   "result": "The first border gets the scanning order 35, below the 40 of the volume hatch. In the Island mode each island starts with its border; in the Platform mode all borders come first.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 105,
+     "before": "  make_entry('border_first',        100, 'border_first',     false, 150,  600, 80, [220,  50,  80]),",
+     "after": "  make_entry('border_first',        100, 'border_first',     false, 150,  600, 35, [220,  50,  80]),"
+    }
+   ]
+  },
+  {
+   "id": "gas",
+   "title": "Another default gas direction",
+   "why": "A machine whose gas flows from front to back (towards +Y).",
+   "result": "New profiles assume a gas flow towards +Y: the islands are exposed from the back row to the front, and the limitation window of the hatch rotation turns with it.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 291,
+     "before": "FACTORY.add_real(gas_flow_group, text, 'gas_flow_angle', 0.0, 360.0, 0.0, 'unit_deg');",
+     "after": "FACTORY.add_real(gas_flow_group, text, 'gas_flow_angle', 0.0, 360.0, 90.0, 'unit_deg');"
+    }
+   ]
+  }
+ ]
+}

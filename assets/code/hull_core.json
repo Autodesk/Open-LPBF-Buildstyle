@@ -1,0 +1,332 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "enabled": false,
+    "n": 1
+   },
+   "notes": [
+    "The group has two parameters: the hull thickness in mm and the core layer skip <i>n</i> (1 to 10). <code>FLAGS.OPT_OFF</code> makes it optional and switched off, so by default the whole volume gets the volume hatch, as on the left."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 140,
+     "end": 147,
+     "lines": [
+      "// 1. Hull and core",
+      "// Off by default. min_hull_thickness (mm): wall thickness of the hull;",
+      "// core_every_nth_layer: the core is exposed every n-th layer (1 = every",
+      "// layer). MPBF background: a thicker effective layer in the core saves",
+      "// time, the hull keeps the fine layers for an accurate surface.",
+      "var hull_core_group = FACTORY.create_top_level_group('grp_hull_core', text, FLAGS.OPT_OFF);",
+      "FACTORY.add_real(hull_core_group, text, 'min_hull_thickness', 0.05, 100.0, 1.0, 'unit_mm');",
+      "FACTORY.add_int(hull_core_group, text, 'core_every_nth_layer', 1, 10, 1, 'unit_layers');"
+     ],
+     "marks": [
+      1,
+      2,
+      5,
+      6,
+      7
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "enabled": true,
+    "n": 1
+   },
+   "notes": [
+    "The profile values are copied into the plain settings object <code>part.hull_core</code>. Everything after this point works with <code>enabled</code>, <code>min_thickness</code> and <code>core_every_nth</code>."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 206,
+     "end": 210,
+     "lines": [
+      "    hull_core: {",
+      "      enabled: G.hull_core_group.isGrpEnabled(),",
+      "      min_thickness: G.hull_core_group.getParamVal('min_hull_thickness'),",
+      "      core_every_nth: G.hull_core_group.getParamVal('core_every_nth_layer')",
+      "    },"
+     ],
+     "marks": [
+      1,
+      2,
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "id": "feature",
+   "title": "Tell ATU before the layers are built",
+   "scene": {
+    "enabled": true,
+    "n": 2
+   },
+   "notes": [
+    "Hull and core is a <i>model feature</i>: ATU prepares data for it before any layer is calculated. <code>declareSingleHullCore</code> registers the two values under a parameter set name.",
+    "<code>coreSkip</code> is the n of the section on the left: the core is exposed on every second layer here."
+   ],
+   "ranges": [
+    {
+     "file": "main/main.js",
+     "start": 391,
+     "end": 398,
+     "lines": [
+      "  if (l_part.hull_core.enabled)",
+      "  {",
+      "    modelFeatures.declareSingleHullCore(S_hull_core_param_set, {",
+      "      // coreSkip: expose the core every n-th layer (1 = every layer);",
+      "      // minThickness: minimum hull wall thickness in mm.",
+      "      coreSkip: l_part.hull_core.core_every_nth,",
+      "      minThickness: l_part.hull_core.min_thickness",
+      "    });"
+     ],
+     "marks": [
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  {
+   "id": "split",
+   "title": "Split the volume into hull and core",
+   "scene": {
+    "enabled": true,
+    "n": 2,
+    "layer": 7
+   },
+   "notes": [
+    "For every volume area of a layer, the generator with the same parameter set name cuts off the hull. <code>needCoreExposure</code> answers whether this is a core layer.",
+    "On the other layers the core stays empty: layer 7 on the left has a hull only, the powder in the core waits for layer 8."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/hull_core.js",
+     "start": 58,
+     "end": 73,
+     "lines": [
+      "exports.split = function(a_area, a_param_set_name)",
+      "{",
+      "  // The generator is created for the current layer with the settings",
+      "  // that were declared under this name (hull thickness, core skip).",
+      "  let l_gen = new HULL.bsSingleHullAndCoreGenerator(a_param_set_name);",
+      "  let l_hull = new ISLAND.bsIsland();",
+      "  l_gen.createHull(a_area, l_hull);",
+      "  let l_core = new ISLAND.bsIsland();",
+      "  // needCoreExposure() answers: \"is this a layer where the core is exposed?\"",
+      "  let l_active = l_gen.needCoreExposure();",
+      "  if (l_active)",
+      "  {",
+      "    l_gen.createCore(a_area, l_core);",
+      "  }",
+      "  return { hull: l_hull, core: l_core, core_active: l_active };",
+      "};"
+     ],
+     "marks": [
+      6,
+      8,
+      9,
+      12
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hatch",
+   "title": "Two hatches, two vector types",
+   "scene": {
+    "enabled": true,
+    "n": 2,
+    "layer": 8
+   },
+   "notes": [
+    "The hull is hatched with the volume settings (BSID 500), the core with its own hatch group (BSID 510), but only when <code>core_active</code> is true. Without hull and core, the whole volume counts as hull."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 449,
+     "end": 463,
+     "lines": [
+      "  // Without hull / core the whole volume is \"hull\" (volume hatch).",
+      "  let l_split = { hull: l_vol_area, core: ISL.empty(), core_active: false };",
+      "  if (l_part.hull_core.enabled && !l_vol_area.isEmpty())",
+      "  {",
+      "    l_split = HULL_CORE.split(l_vol_area, SETTINGS.HULL_CORE_PARAM_SET);",
+      "  }",
+      "",
+      "  let l_id = a_isl_info.islid;",
+      "  let l_b = a_isl_info.bounds;",
+      "  hatch_area(a_ctx, a_result, l_split.hull, l_part.hatching.volume, BSID.hatch_volume, l_id, l_b, false);",
+      "  // core_active is false on layers where the core is skipped (core",
+      "  // every n-th layer): then nothing is exposed in the core area.",
+      "  if (l_split.core_active)",
+      "  {",
+      "    hatch_area(a_ctx, a_result, l_split.core, l_part.hatching.core, BSID.hatch_core, l_id, l_b, false);"
+     ],
+     "marks": [
+      1,
+      4,
+      10,
+      12,
+      14
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Faster settings for the core",
+   "scene": {
+    "enabled": true,
+    "n": 1
+   },
+   "notes": [
+    "The core is hidden inside the part, so it may use more productive settings: 350 W at 1300 mm/s and 0.12 mm hatch distance instead of 280 W, 1200 mm/s and 0.1 mm for the volume.",
+    "These are defaults: change them per profile under Scanning and Hatching › Core hatching."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 112,
+     "end": 114,
+     "lines": [
+      "  make_entry('hatch_volume',        500, 'none',             false, 280, 1200, 40, [ 25, 250,  45]),",
+      "  make_entry('hatch_downskin',      501, 'none',             true,  120, 1000, 30, [  0, 120, 255]),",
+      "  make_entry('hatch_core',          510, 'none',             false, 350, 1300, 45, [  0, 170,  70]),"
+     ],
+     "marks": [
+      0,
+      2
+     ]
+    },
+    {
+     "file": "main/param_groups.js",
+     "start": 199,
+     "end": 202,
+     "lines": [
+      "// The core uses a larger hatch distance (0.12 mm) by default: the core",
+      "// is not visible, so faster settings are acceptable there.",
+      "FACTORY.create_hatch_group(hatching_group, 'grp_hatch_core', text,",
+      "  { hatch_distance: 0.12, stripe_width: 10.0 }, FLAGS.DEF, exports.PART_PATTERN_KEYS, true);"
+     ],
+     "marks": [
+      3
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "default_on",
+   "title": "Switch hull and core on by default",
+   "why": "New profiles split every volume into hull and core.",
+   "result": "In a new profile, “Hull and core” shows <i>on</i>. Profiles you already have may keep their stored setting.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 145,
+     "before": "var hull_core_group = FACTORY.create_top_level_group('grp_hull_core', text, FLAGS.OPT_OFF);",
+     "after": "var hull_core_group = FACTORY.create_top_level_group('grp_hull_core', text, FLAGS.OPT_ON);"
+    }
+   ]
+  },
+  {
+   "id": "hull_2",
+   "title": "A 2 mm hull by default",
+   "why": "A thicker shell with the volume settings, as in the video.",
+   "result": "The default hull thickness is 2 mm. Move the hull slider in <b>Try it</b> to compare. For one profile, type the value in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 146,
+     "before": "FACTORY.add_real(hull_core_group, text, 'min_hull_thickness', 0.05, 100.0, 1.0, 'unit_mm');",
+     "after": "FACTORY.add_real(hull_core_group, text, 'min_hull_thickness', 0.05, 100.0, 2.0, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "skip_2",
+   "title": "Expose the core every second layer",
+   "why": "Saves build time in large solid parts.",
+   "result": "The core then melts two layers of powder at once. The laser settings do not change by themselves: at 350 W the core gets about 37 J/mm³ instead of 75 J/mm³ (350 / (1300 · 0.12 · 0.06)), so check the core power too.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 147,
+     "before": "FACTORY.add_int(hull_core_group, text, 'core_every_nth_layer', 1, 10, 1, 'unit_layers');",
+     "after": "FACTORY.add_int(hull_core_group, text, 'core_every_nth_layer', 1, 10, 2, 'unit_layers');"
+    }
+   ]
+  },
+  {
+   "id": "core_distance",
+   "title": "A coarser core hatch",
+   "why": "Fewer lines in the core, faster build.",
+   "result": "Core hatch about 64 J/mm³ instead of 75 J/mm³ per 30 µm layer (350 / (1300 · 0.14 · 0.03)).",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 202,
+     "before": "  { hatch_distance: 0.12, stripe_width: 10.0 }, FLAGS.DEF, exports.PART_PATTERN_KEYS, true);",
+     "after": "  { hatch_distance: 0.14, stripe_width: 10.0 }, FLAGS.DEF, exports.PART_PATTERN_KEYS, true);"
+    }
+   ]
+  },
+  {
+   "id": "core_power",
+   "title": "More core power",
+   "why": "More energy for the core, for example together with a core layer skip.",
+   "result": "Core hatch default 380 W: about 81 J/mm³ per 30 µm layer. For one profile, change Scanning › Core hatching › power in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 114,
+     "before": "  make_entry('hatch_core',          510, 'none',             false, 350, 1300, 45, [  0, 170,  70]),",
+     "after": "  make_entry('hatch_core',          510, 'none',             false, 380, 1300, 45, [  0, 170,  70]),"
+    }
+   ]
+  }
+ ]
+}

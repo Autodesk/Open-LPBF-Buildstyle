@@ -1,0 +1,97 @@
+{
+ "duration": 122.23,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Island grid: six islands of 6 x 6 mm in one layer"
+  },
+  {
+   "t": 5.0,
+   "caption": "Layer 34: hatch (green) and borders (red) of every island"
+  },
+  {
+   "t": 7.5,
+   "caption": "Color mode 'Exposure order': purple first ... yellow last"
+  },
+  {
+   "t": 16.71,
+   "caption": "Build order 'Platform': first the hatch of all islands, then all borders"
+  },
+  {
+   "t": 25.73,
+   "caption": "Open Profile › Docs demo (also the platform profile)"
+  },
+  {
+   "t": 30.91,
+   "caption": "Platform Parameter › Build order"
+  },
+  {
+   "t": 35.08,
+   "caption": "Build order: Platform → Island"
+  },
+  {
+   "t": 43.27,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 44.47,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 45.34,
+   "caption": "'Island': one island after the other, its hatch, then its border"
+  },
+  {
+   "t": 57.47,
+   "caption": "Open the profile again"
+  },
+  {
+   "t": 62.66,
+   "caption": "Platform Parameter › Scanning order"
+  },
+  {
+   "t": 66.37,
+   "caption": "Smaller numbers first: First border 80 → 5, before the volume hatch (40)"
+  },
+  {
+   "t": 73.17,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 74.37,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 75.24,
+   "caption": "Every island now starts with its border"
+  },
+  {
+   "t": 87.37,
+   "caption": "Open the profile again"
+  },
+  {
+   "t": 92.64,
+   "caption": "Platform Parameter › Gas flow"
+  },
+  {
+   "t": 95.35,
+   "caption": "Gas flow angle: 0° (towards +X) → 90° (towards +Y)"
+  },
+  {
+   "t": 102.51,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 103.71,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 104.56,
+   "caption": "Downstream first: the top row, so spatter is blown onto islands already exposed"
+  },
+  {
+   "t": 116.69,
+   "caption": "Toolpaths in 3D up to layer 34"
+  }
+ ]
+}

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Partners · Open LPBF Buildstyle for Autodesk Fusion</title>
+  <link rel="stylesheet" href="assets/css/site.css?v=20261115f">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="index.html">Open LPBF Buildstyle<span>for Autodesk Fusion</span></a>
+    <nav>
+      <a href="index.html">Overview</a>
+      <a href="tutorials.html">Tutorials</a>
+      <a href="partners.html" class="current">Partners</a>
+      <a href="features/getting_started.html">Getting started</a>
+      <a href="features/build_with_ai.html">Build with AI</a>
+    </nav>
+  </header>
+
+  <section class="m-hero">
+    <div class="m-hero-in" style="grid-template-columns: minmax(0, 1fr)">
+      <div>
+        <p class="eyebrow">Partners and ecosystem</p>
+        <h1>Better together</h1>
+        <p class="sub" style="max-width: 760px">The buildstyle writes open formats and is open source itself. These
+          partners take it the rest of the way: from the toolpath to the scanner and laser on the machine.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="band-in">
+      <!-- Autodesk Machine Control Framework -->
+      <div class="partner-feature" id="amcf">
+        <div class="visual">
+          <img class="partner-logo" src="assets/partners/amcf_logo.png" alt="Autodesk Machine Control Framework logo">
+          <div class="chain" aria-label="Data flow">
+            <span>Autodesk Fusion</span><i>→</i><span class="ours">Open LPBF Buildstyle</span><i>→</i>
+            <span>3MF toolpath</span><i>→</i><span>Machine Control Framework</span><i>→</i><span>Machine</span>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">Works great with</p>
+          <h2>Autodesk Machine Control Framework</h2>
+          <p>The Autodesk Machine Control Framework (AMCF) is an open-source framework for building the control software
+            of additive manufacturing machines. Together with the buildstyle it closes the loop from the part in Fusion to
+            the laser on the machine, with open code on both ends.</p>
+          <ul>
+            <li>Open toolpath data: the buildstyle exports the 3MF toolpath format, layer by layer</li>
+            <li>Open on both sides: change the exposure strategy and the machine logic in code you own</li>
+            <li>Laser parameters per vector type travel with the job as profiles</li>
+          </ul>
+          <div class="btn-row">
+            <a class="btn btn-dark" href="https://github.com/Autodesk/AutodeskMachineControlFramework">AMCF on GitHub</a>
+            <a class="btn btn-line" href="features/export_formats.html">About the 3MF toolpath export</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- PowderBed -->
+      <div class="partner-feature" id="powderbed">
+        <div class="visual">
+          <img class="partner-logo wordmark" src="assets/partners/powderbed.png" alt="POWDERBED">
+          <img class="product-shot" src="assets/partners/powderbed_core1.webp" alt="POWDERBED Core 1 scanner and laser controller, front panel">
+        </div>
+        <div>
+          <p class="eyebrow">Ready-to-run machine control</p>
+          <h2>POWDERBED Core 1</h2>
+          <p>POWDERBED by Aagaard AM makes Core 1: an off-the-shelf scanner and laser controller for laser powder bed
+            fusion, with the machine software already in the box. That software is the Autodesk Machine Control
+            Framework, so the 3MF toolpaths the buildstyle exports go straight to the scanner and laser.</p>
+          <ul>
+            <li>Autodesk Machine Control Framework preinstalled, open source under BSD-3, with simulation</li>
+            <li>3MF toolpaths with laser power, speed and delays per vector</li>
+            <li>Adjustable build styles and Autodesk Fusion CAD/CAM integration included</li>
+            <li>For research labs and machine builders</li>
+          </ul>
+          <div class="btn-row">
+            <a class="btn btn-dark" href="https://powderbed.com">Visit powderbed.com</a>
+            <a class="btn btn-line" href="https://powderbed.com/platform/">See Core 1</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCANLAB -->
+      <div class="partner-feature video-first" id="scanlab">
+        <div class="visual">
+          <img class="partner-logo scanlab" src="assets/partners/scanlab_logo.svg" alt="SCANLAB">
+          <video class="product-shot" controls preload="none" poster="assets/video/scanlab_iwb_tum.jpg" width="1920" height="1080">
+            <source src="assets/video/scanlab_iwb_tum.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div>
+          <p class="eyebrow">Scan heads and scan control</p>
+          <h2>SCANLAB</h2>
+          <p>SCANLAB is the world's leading independent OEM manufacturer of scan heads and scan solutions. Its scanners
+            and RTC scan controllers steer the laser in powder bed fusion machines. In the video, SCANLAB and the
+            Professorship of Laser-based Additive Manufacturing at the Technical University of Munich (TUM) talk about
+            their work with Autodesk.</p>
+          <ul>
+            <li>In the video: Daniel Reitemeyer and Holger Schlüter (SCANLAB), Prof. Dr. Katrin Wudy and Richard Off (TUM)</li>
+            <li>POWDERBED Core 1 is built around a SCANLAB RTC6 scan controller board</li>
+          </ul>
+          <div class="btn-row">
+            <a class="btn btn-dark" href="https://www.scanlab.de/en">Visit scanlab.de</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="band-in">
+      <h2>Highlighted features</h2>
+      <p class="lead">Strategies that make the difference on the machine.</p>
+      <div class="highlights">
+        <a class="tile" href="features/power_optimization.html"><img src="assets/video/power_optimization.jpg" alt="Triangle coloured by laser power in the ATU Exposure Preview"><div class="t"><b>Power optimization</b><small>Less power on short hatch vectors, where the heat has no time to spread.</small></div></a>
+        <a class="tile" href="features/multi_laser.html"><img src="assets/video/multi_laser_parts.jpg" alt="Thirteen parts in four laser colours in the ATU Exposure Preview"><div class="t"><b>Multi-laser load balancing</b><small>All lasers finish their share of the layer together.</small></div></a>
+        <a class="tile" href="features/export_formats.html"><img src="assets/video/export_formats.jpg" alt="Format list of the ATU Execute dialog with the six export filters"><div class="t"><b>Export formats</b><small>LSR, CLI+ and 3MF toolpath packages for the machine.</small></div></a>
+      </div>
+    </div>
+  </section>
+
+  <footer>Open LPBF Buildstyle for Autodesk Fusion documentation</footer>
+</body>
+</html>

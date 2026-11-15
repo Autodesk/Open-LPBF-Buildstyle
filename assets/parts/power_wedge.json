@@ -1,0 +1,19 @@
+{
+ "name": "power_wedge",
+ "title": "Power wedge",
+ "outline": [
+  [
+   0.0,
+   0.0
+  ],
+  [
+   36.0,
+   0.0
+  ],
+  [
+   0.0,
+   18.0
+  ]
+ ],
+ "height": 3.0
+}

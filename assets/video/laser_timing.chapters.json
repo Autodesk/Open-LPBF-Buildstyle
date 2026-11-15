@@ -1,0 +1,61 @@
+{
+ "duration": 50.65,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Hatch plate: 40 x 28 mm, 3 mm high, 100 layers"
+  },
+  {
+   "t": 5.03,
+   "caption": "Exposure Preview with the Build Style Log below"
+  },
+  {
+   "t": 7.53,
+   "caption": "Build the exposures"
+  },
+  {
+   "t": 8.5,
+   "caption": "Estimated exposure time: 0:14:54"
+  },
+  {
+   "t": 13.0,
+   "caption": "Open Profile › Docs demo (also the platform profile)"
+  },
+  {
+   "t": 18.18,
+   "caption": "Platform Parameter › Laser timing"
+  },
+  {
+   "t": 24.38,
+   "caption": "Jump speed 7000 mm/s, mark delay 10 µs, jump delay 50 µs"
+  },
+  {
+   "t": 28.43,
+   "caption": "Mark delay: type 200 µs"
+  },
+  {
+   "t": 34.39,
+   "caption": "The scanner waits after every marked vector"
+  },
+  {
+   "t": 36.49,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 37.69,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 38.61,
+   "caption": "Same toolpaths: the timing does not change the geometry"
+  },
+  {
+   "t": 40.11,
+   "caption": "New estimate: 0:15:04, 531 vectors per layer x 0.19 ms more"
+  },
+  {
+   "t": 45.11,
+   "caption": "Toolpaths in 3D up to the current layer"
+  }
+ ]
+}

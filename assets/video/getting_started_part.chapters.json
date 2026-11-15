@@ -1,0 +1,21 @@
+{
+ "duration": 33.88,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "View › Data Management › Input Geometry Files"
+  },
+  {
+   "t": 9.66,
+   "caption": "Load… and select an STL file"
+  },
+  {
+   "t": 17.3,
+   "caption": "Import geometry: layer thickness 30 µm"
+  },
+  {
+   "t": 27.3,
+   "caption": "The hatch plate is a build part, Part (solid)"
+  }
+ ]
+}

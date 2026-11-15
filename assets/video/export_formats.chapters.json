@@ -1,0 +1,57 @@
+{
+ "duration": 72.11,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Power wedge with power optimization, 100 layers"
+  },
+  {
+   "t": 5.01,
+   "caption": "Execute: build the exposures and export in one run"
+  },
+  {
+   "t": 9.04,
+   "caption": "Steps: tick Export Data"
+  },
+  {
+   "t": 14.21,
+   "caption": "Layer range: bottom to top layer, the whole part"
+  },
+  {
+   "t": 19.8,
+   "caption": "Format: the export filters of the buildstyle"
+  },
+  {
+   "t": 23.91,
+   "caption": "LSR, CLI+ and 3MF, two variants each"
+  },
+  {
+   "t": 29.38,
+   "caption": "CLI+ toolpath, ZIP with a single file"
+  },
+  {
+   "t": 33.27,
+   "caption": "Select Export Target…: file name of the package"
+  },
+  {
+   "t": 43.09,
+   "caption": "OK: build the exposures, then write the package"
+  },
+  {
+   "t": 48.34,
+   "caption": "Build and export took about 4 s"
+  },
+  {
+   "t": 53.59,
+   "caption": "The exported toolpaths in the 3D view"
+  },
+  {
+   "t": 59.11,
+   "caption": "One ZIP: toolpath, build job image, parameters, export info"
+  },
+  {
+   "t": 65.11,
+   "caption": "toolpath.cli: header, then every path with its laser settings"
+  }
+ ]
+}

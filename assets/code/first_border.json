@@ -1,0 +1,411 @@
+{
+ "repo_url": "https://github.com/Autodesk/Open-LPBF-Buildstyle/blob/588dc865157206be2c9b17d4d74f1db38acdc714/",
+ "steps": [
+  {
+   "id": "declare",
+   "title": "Declare the parameters",
+   "scene": {
+    "mode": "edge"
+   },
+   "notes": [
+    "The first border is on by default (<code>FLAGS.OPT_ON</code>). Its main value is the beam compensation, 0.06 mm: about half the width of a melt track.",
+    "The other parameters belong to the blocked paths and to the scan direction; <code>add_contour_children</code> adds the sub-groups Layer skip, Line stipple and Start point shift."
+   ],
+   "ranges": [
+    {
+     "file": "main/param_groups.js",
+     "start": 149,
+     "end": 160,
+     "lines": [
+      "// 2. First border (beam compensation) and blocked paths",
+      "// On by default. beam_compensation 0.06 mm = about half the width of a",
+      "// melt track, so the melted edge lies on the part outline.",
+      "// blocked_path_*: single center lines in regions narrower than the",
+      "// compensated border; shorter lines than min_length (mm) are dropped.",
+      "// alternate_per_layer: reverse the scan direction on every second layer.",
+      "var border_first_group = FACTORY.create_top_level_group('grp_border_first', text, FLAGS.OPT_ON);",
+      "FACTORY.add_real(border_first_group, text, 'beam_compensation', 0.0, 2.0, 0.06, 'unit_mm');",
+      "FACTORY.add_bool(border_first_group, text, 'blocked_path_enabled', true);",
+      "FACTORY.add_real(border_first_group, text, 'blocked_path_min_length', 0.0, 10.0, 0.02, 'unit_mm');",
+      "FACTORY.add_bool(border_first_group, text, 'alternate_per_layer', true);",
+      "add_contour_children(border_first_group);"
+     ],
+     "marks": [
+      1,
+      3,
+      5,
+      7,
+      8,
+      9,
+      10
+     ]
+    }
+   ]
+  },
+  {
+   "id": "read",
+   "title": "Read the values from the profile",
+   "scene": {
+    "mode": "edge"
+   },
+   "notes": [
+    "The values end up in <code>part.border_first</code>. Note the shorter name: the dialog's <i>beam_compensation</i> becomes <code>beam_comp</code> in the code."
+   ],
+   "ranges": [
+    {
+     "file": "main/settings.js",
+     "start": 211,
+     "end": 221,
+     "lines": [
+      "    border_first: {",
+      "      enabled: l_bf.isGrpEnabled(),",
+      "      beam_comp: l_bf.getParamVal('beam_compensation'),",
+      "      blocked_path: {",
+      "        enabled: l_bf.getParamVal('blocked_path_enabled'),",
+      "        min_length: l_bf.getParamVal('blocked_path_min_length')",
+      "      },",
+      "      alternate_per_layer: l_bf.getParamVal('alternate_per_layer'),",
+      "      layer_skip: l_bf_children.layer_skip,",
+      "      stipple: l_bf_children.stipple,",
+      "      start_point: l_bf_children.start_point"
+     ],
+     "marks": [
+      2,
+      3,
+      4,
+      5,
+      7
+     ]
+    }
+   ]
+  },
+  {
+   "id": "insets",
+   "title": "How far inside each ring runs",
+   "scene": {
+    "mode": "edge"
+   },
+   "notes": [
+    "<code>compute_insets</code> measures every ring from the original outline. The first border runs <code>beam_comp</code> inside: the beam centre is b inside, the melt track reaches w/2 outwards, so the melted edge lands on the outline when b = w/2.",
+    "The hatch starts <code>hatch_offset</code> (0.05 mm) inside the innermost ring: 0.11 mm with the defaults."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 250,
+     "end": 256,
+     "lines": [
+      "  // MPBF background: the laser melts a track that is wider than the",
+      "  // beam center line. The first border runs half a track width (beam",
+      "  // compensation) inside the outline, so the melted edge ends exactly",
+      "  // on the outline of the part.",
+      "  r_ins.first = l_bf.enabled ? l_bf.beam_comp : 0.0;",
+      "  // l_innermost = inset of the innermost ring created so far.",
+      "  let l_innermost = r_ins.first;"
+     ],
+     "marks": [
+      4
+     ]
+    },
+    {
+     "file": "main/exposure_layer.js",
+     "start": 284,
+     "end": 284,
+     "lines": [
+      "  r_ins.hatch = l_innermost + a_part.hatching.hatch_offset;"
+     ],
+     "marks": [
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "contour",
+   "title": "Shift the outline inwards",
+   "scene": {
+    "mode": "fin",
+    "fin": 0.3
+   },
+   "notes": [
+    "<code>make_contour_hatch</code> offsets the island by −b and turns every boundary of the result into one closed path. Around inner corners the offset becomes an arc of radius b, as at the root of the fin on the left.",
+    "If the island is narrower than 2 · b, the offset area is empty and no border is created."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/contours.js",
+     "start": 69,
+     "end": 81,
+     "lines": [
+      "exports.make_contour_hatch = function(a_island, a_inset)",
+      "{",
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  let l_isl = ISL.offset(a_island, -a_inset);",
+      "  if (l_isl.isEmpty())",
+      "  {",
+      "    return { ok: true, hatch: r_hatch };",
+      "  }",
+      "  // borderToHatch: every boundary of the area (outer contour and holes)",
+      "  // becomes one closed polyline in the hatch.",
+      "  l_isl.borderToHatch(r_hatch);",
+      "  return { ok: true, hatch: r_hatch };",
+      "};"
+     ],
+     "marks": [
+      3,
+      4,
+      8,
+      10
+     ]
+    }
+   ]
+  },
+  {
+   "id": "blocked",
+   "title": "Blocked paths for thin walls",
+   "scene": {
+    "mode": "fin",
+    "fin": 0.1
+   },
+   "notes": [
+    "A 0.1 mm fin is narrower than 2 × 0.06 mm: it vanishes in the offset. Without help neither border nor hatch would melt it.",
+    "<code>create_blocked_paths</code> asks two builtins for the centre lines of such regions: narrow bridges and narrow appendices (dead ends like this fin). The appendix lines are trimmed with 1.2 · b so they do not run into the border; lines shorter than <code>min_length</code> are deleted."
+   ],
+   "ranges": [
+    {
+     "file": "main/exposure_layer.js",
+     "start": 320,
+     "end": 330,
+     "lines": [
+      "  // Blocked paths: center lines of regions that are too narrow for the compensated border.",
+      "  // Example: a wall of 0.1 mm with a beam compensation of 0.06 mm",
+      "  // vanishes when shifted inwards by 0.06 mm, so it would get no border",
+      "  // and no hatch. A single line along its center keeps the thin wall.",
+      "  // Inside the downskin they get the downskin BSID of the first border",
+      "  // (there is no separate downskin BSID for blocked paths).",
+      "  if (l_bf.blocked_path.enabled && (l_bf.beam_comp > S_MIN_BEAM_COMP_FOR_BLOCKED_PATHS))",
+      "  {",
+      "    let l_paths = NARROW.create_blocked_paths(a_island, l_bf.beam_comp, l_bf.blocked_path.min_length);",
+      "    add_hatch_split(a_ctx, a_result, l_paths, l_split_info.split, a_isl_info.ds,",
+      "      BSID.blocked_path, BSID.border_first_ds, a_isl_info.islid, a_isl_info.bounds);"
+     ],
+     "marks": [
+      6,
+      8
+     ]
+    },
+    {
+     "file": "lib/exposure/narrow_paths.js",
+     "start": 59,
+     "end": 77,
+     "lines": [
+      "exports.create_blocked_paths = function(a_island, a_beam_comp, a_min_length)",
+      "{",
+      "  // Both builtins clear their result hatch before they write into it, so",
+      "  // each one gets its own hatch; the appendix lines are then appended to",
+      "  // the bridge lines (moveDataFrom empties the source hatch). The offset",
+      "  // is negative because the border offset goes inwards.",
+      "  let r_hatch = new HATCH.bsHatch();",
+      "  let l_appendix_hatch = new HATCH.bsHatch();",
+      "  a_island.createNarrowBridgePolylines(r_hatch, -a_beam_comp);",
+      "  a_island.createNarrowAppendixPolylines(l_appendix_hatch, -a_beam_comp, 1.2 * a_beam_comp);",
+      "  r_hatch.moveDataFrom(l_appendix_hatch);",
+      "  // Tiny pieces (e.g. from small notches in the outline) are not worth",
+      "  // a separate exposure; they would only add jumps and laser on/off.",
+      "  if (a_min_length > 0)",
+      "  {",
+      "    r_hatch.deleteShortLines(a_min_length);",
+      "  }",
+      "  return r_hatch;",
+      "};"
+     ],
+     "marks": [
+      8,
+      9,
+      15
+     ]
+    }
+   ]
+  },
+  {
+   "id": "direction",
+   "title": "Reverse the direction every layer",
+   "scene": {
+    "mode": "direction",
+    "layer": 2
+   },
+   "notes": [
+    "The melt pool and the spatter are not symmetric to the scan direction. With <code>alternate_per_layer</code> every odd layer index is flipped, so such effects do not add up on the same side of the part.",
+    "A random start point (the default of Start point shift) spreads the small seam where the closed path starts and ends. The faint dots on the left are the start points of the earlier layers."
+   ],
+   "ranges": [
+    {
+     "file": "lib/exposure/contours.js",
+     "start": 105,
+     "end": 130,
+     "lines": [
+      "exports.apply_direction_and_start = function(a_hatch, a_opts)",
+      "{",
+      "  if (a_hatch.isEmpty()) return;",
+      "",
+      "  // Odd layer / ring indices request a flip (index % 2 === 1).",
+      "  let l_flip_layer = (a_opts.alternate_per_layer === true) && ((a_opts.layer_index % 2) === 1);",
+      "  let l_flip_contour = (a_opts.alternate_per_contour === true) && ((a_opts.ring_index % 2) === 1);",
+      "  if (l_flip_layer !== l_flip_contour)",
+      "  {",
+      "    // flip(false, true): flip every contour, keep the order of the contours.",
+      "    a_hatch.flip(false, true);",
+      "  }",
+      "",
+      "  // A missing start_point object is treated like 'off' (keep the start",
+      "  // point that the geometry functions produced).",
+      "  let l_mode = a_opts.start_point ? a_opts.start_point.mode : 'off';",
+      "  if ((l_mode === 'random') || (l_mode === 'random_previous'))",
+      "  {",
+      "    // 'random_previous' gets a random start here as a first guess; the",
+      "    // post-processing may move it again based on the previous layers.",
+      "    // The seed is derived from layer, island and ring, so the result is",
+      "    // reproducible: recalculating a layer gives the same start points.",
+      "    // For closed polygons one of the existing polygon points is chosen.",
+      "    a_hatch.setRandomStartPoint(HATCH.nLoopModeFlagClosedPolygon, RANDOM.to_builtin_seed(a_opts.seed));",
+      "  }",
+      "};"
+     ],
+     "marks": [
+      5,
+      7,
+      9,
+      10,
+      23
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser",
+   "title": "Laser settings of border and blocked path",
+   "scene": {
+    "mode": "fin",
+    "fin": 0.1
+   },
+   "notes": [
+    "The first border (BSID 100) and the blocked paths (BSID 110) share 150 W at 600 mm/s, slower than the hatch. Their scan order 80 and 85 puts them after the hatches, so the border re-melts the line ends of the hatch.",
+    "Magenta in the Exposure Preview's BSID colours is the blocked path."
+   ],
+   "ranges": [
+    {
+     "file": "main/vector_types.js",
+     "start": 105,
+     "end": 107,
+     "lines": [
+      "  make_entry('border_first',        100, 'border_first',     false, 150,  600, 80, [220,  50,  80]),",
+      "  make_entry('border_first_ds',     101, 'border_first',     true,  100,  900, 81, [240, 120,  60]),",
+      "  make_entry('blocked_path',        110, 'none',             false, 150,  600, 85, [200,   0, 200]),"
+     ],
+     "marks": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  }
+ ],
+ "recipes": [
+  {
+   "id": "beam_comp",
+   "title": "A smaller default beam compensation",
+   "why": "For a machine with a narrower melt track (about 0.1 mm).",
+   "result": "New profiles start with 0.05 mm. Set b to 0.05 mm in <b>Try it</b> and the track width to 0.10 mm: the melted edge is on the outline again. For one profile, type the value in the dialog, as in the video.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 156,
+     "before": "FACTORY.add_real(border_first_group, text, 'beam_compensation', 0.0, 2.0, 0.06, 'unit_mm');",
+     "after": "FACTORY.add_real(border_first_group, text, 'beam_compensation', 0.0, 2.0, 0.05, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "no_blocked",
+   "title": "No blocked paths by default",
+   "why": "If thin walls should rather be removed from the design than exposed as single lines.",
+   "result": "Walls narrower than 2 · b are then not exposed at all. Untick <b>Blocked paths</b> in the Thin fin view to see what that means for the fin.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 157,
+     "before": "FACTORY.add_bool(border_first_group, text, 'blocked_path_enabled', true);",
+     "after": "FACTORY.add_bool(border_first_group, text, 'blocked_path_enabled', false);"
+    }
+   ]
+  },
+  {
+   "id": "min_length",
+   "title": "Drop short blocked paths",
+   "why": "Very short centre lines (from small notches or sharp corners) only add laser on/off points.",
+   "result": "Blocked paths shorter than 0.1 mm are deleted (<code>deleteShortLines</code>). Long ones, like the one in the fin, stay.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 158,
+     "before": "FACTORY.add_real(border_first_group, text, 'blocked_path_min_length', 0.0, 10.0, 0.02, 'unit_mm');",
+     "after": "FACTORY.add_real(border_first_group, text, 'blocked_path_min_length', 0.0, 10.0, 0.1, 'unit_mm');"
+    }
+   ]
+  },
+  {
+   "id": "same_direction",
+   "title": "Keep the border direction on every layer",
+   "why": "For comparison tests where every layer should be scanned the same way.",
+   "result": "The first border runs in the same direction on all layers. Untick <b>Alternate every layer</b> in the Direction view.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/param_groups.js",
+     "line": 159,
+     "before": "FACTORY.add_bool(border_first_group, text, 'alternate_per_layer', true);",
+     "after": "FACTORY.add_bool(border_first_group, text, 'alternate_per_layer', false);"
+    }
+   ]
+  },
+  {
+   "id": "power",
+   "title": "More power for the first border",
+   "why": "A denser surface layer, for example for a material that needs more energy.",
+   "result": "First border default 170 W at 600 mm/s. For one profile, change Scanning › First border › power in the dialog instead.",
+   "atu": [
+    "compile",
+    "new_profile",
+    "rebuild"
+   ],
+   "edits": [
+    {
+     "file": "main/vector_types.js",
+     "line": 105,
+     "before": "  make_entry('border_first',        100, 'border_first',     false, 150,  600, 80, [220,  50,  80]),",
+     "after": "  make_entry('border_first',        100, 'border_first',     false, 170,  600, 80, [220,  50,  80]),"
+    }
+   ]
+  }
+ ]
+}

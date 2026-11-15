@@ -1,0 +1,45 @@
+{
+ "duration": 64.35,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Order strip: a 48 mm bar and three squares, hatched as a chessboard"
+  },
+  {
+   "t": 5.0,
+   "caption": "Every chess field is its own hatch block"
+  },
+  {
+   "t": 7.5,
+   "caption": "Color mode 'Exposure order': purple first ... yellow last"
+  },
+  {
+   "t": 16.74,
+   "caption": "Build order 'Platform': island by position, the fields of the bar stay together"
+  },
+  {
+   "t": 26.76,
+   "caption": "Open Profile › Docs demo (also the platform profile)"
+  },
+  {
+   "t": 32.05,
+   "caption": "Platform Parameter › Build order"
+  },
+  {
+   "t": 35.38,
+   "caption": "Build order: Platform → Global"
+  },
+  {
+   "t": 44.48,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 45.68,
+   "caption": "'Global': every field by its own position, one sweep against the gas flow"
+  },
+  {
+   "t": 58.82,
+   "caption": "Toolpaths in 3D up to layer 34"
+  }
+ ]
+}

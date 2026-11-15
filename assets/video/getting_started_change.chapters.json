@@ -1,0 +1,21 @@
+{
+ "duration": 28.02,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Open Profile › your profile"
+  },
+  {
+   "t": 6.3,
+   "caption": "Hatching › Volume: set the pattern to Chessboard"
+  },
+  {
+   "t": 17.53,
+   "caption": "Execute and OK again"
+  },
+  {
+   "t": 24.51,
+   "caption": "Rebuilt: chessboard hatch"
+  }
+ ]
+}

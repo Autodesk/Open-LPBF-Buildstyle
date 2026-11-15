@@ -1,0 +1,21 @@
+{
+ "duration": 45.47,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Exposure Preview › Manage Profiles…: default is read-only"
+  },
+  {
+   "t": 8.26,
+   "caption": "Duplicate… it and name the copy"
+  },
+  {
+   "t": 20.06,
+   "caption": "Assign Profiles…: the copy for the part"
+  },
+  {
+   "t": 35.81,
+   "caption": "Platform Parameter: the same profile"
+  }
+ ]
+}

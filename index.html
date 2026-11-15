@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open LPBF Buildstyle for Autodesk Fusion</title>
+  <meta name="description" content="An open-source laser powder bed fusion build style for Autodesk Fusion: every exposure strategy in readable JavaScript, explained feature by feature.">
+  <link rel="stylesheet" href="assets/css/site.css?v=20261115f">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="index.html">Open LPBF Buildstyle<span>for Autodesk Fusion</span></a>
+    <nav>
+      <a href="index.html" class="current">Overview</a>
+      <a href="tutorials.html">Tutorials</a>
+      <a href="partners.html">Partners</a>
+      <a href="features/getting_started.html">Getting started</a>
+      <a href="features/build_with_ai.html">Build with AI</a>
+    </nav>
+  </header>
+
+  <!-- hero -->
+  <section class="m-hero">
+    <div class="m-hero-in">
+      <div>
+        <p class="eyebrow">Open source · Laser powder bed fusion</p>
+        <h1>Your build style. Open, readable, yours to change.</h1>
+        <p class="sub">The Open LPBF Buildstyle turns parts in Autodesk Fusion into laser toolpaths for metal powder bed
+          fusion. Every exposure strategy is plain JavaScript you can read, adapt and extend, from contours and
+          hatching to multi-laser load balancing and power optimization.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="features/getting_started.html">Get started</a>
+          <a class="btn btn-ghost" href="tutorials.html">Explore the tutorials</a>
+        </div>
+      </div>
+      <div class="intro-video hero-videos">
+        <div class="hv-stage">
+          <div class="hv-panel" id="hv-volumetric" role="tabpanel" aria-labelledby="hv-tab-volumetric">
+            <iframe src="https://fast.wistia.net/embed/iframe/gcavx9yikn" title="Volumetric Toolpathing API video"
+                    allow="autoplay; fullscreen" allowfullscreen frameborder="0" scrolling="no"
+                    width="960" height="540"></iframe>
+          </div>
+          <div class="hv-panel" id="hv-ai" role="tabpanel" aria-labelledby="hv-tab-ai" hidden>
+            <video controls preload="none" poster="assets/video/ai_and_atu.jpg" width="1920" height="1080">
+              <source src="assets/video/ai_and_atu.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="hv-tabs" role="tablist" aria-label="Videos">
+          <button type="button" role="tab" id="hv-tab-volumetric" aria-controls="hv-volumetric" aria-selected="true">
+            <b>Volumetric Toolpathing API</b><small>Overview video</small></button>
+          <button type="button" role="tab" id="hv-tab-ai" aria-controls="hv-ai" aria-selected="false">
+            <b>Build with AI in ATU</b><small>Narrated · 2 min</small></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- why -->
+  <section class="band">
+    <div class="band-in">
+      <h2>Built to be understood</h2>
+      <p class="lead">A build style decides how every layer is exposed, yet it is often a black box. This one is a starting point you own: open the code,
+        see what every parameter does, and make the machine do what your process needs.</p>
+      <div class="props">
+        <div class="prop">
+          <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/></svg></div>
+          <h3>Open source</h3>
+          <p>Every strategy is readable JavaScript in a Fusion project. Copy it, change it, ship it with your machine.</p>
+        </div>
+        <div class="prop">
+          <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M10 9l5 2.5-5 2.5z" fill="currentColor"/><path d="M8 21h8"/></svg></div>
+          <h3>Explained feature by feature</h3>
+          <p>A video in Advanced Toolpath Utility, an interactive model and a code walkthrough for each of the eighteen features.</p>
+        </div>
+        <div class="prop">
+          <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M6 8.5v7M18 8.5v7M8.5 6h7M8.5 18h7"/></svg></div>
+          <h3>Ready for real machines</h3>
+          <p>Multi-laser load balancing, gas flow aware ordering and LSR, CLI+ and 3MF toolpath exports.</p>
+        </div>
+        <div class="prop">
+          <div class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></div>
+          <h3>Build with AI</h3>
+          <p>Ask your coding assistant to explain or change a strategy, then check the result in ATU.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- spotlight: power optimization -->
+  <section class="band alt" id="spotlight">
+    <div class="band-in spotlight">
+      <a class="shot" href="features/power_optimization.html#explainer"
+         aria-label="The interactive power optimization model: dragging the sliders recolours the hatch vectors by power">
+        <video src="assets/video/power_optimization_web_loop.mp4" poster="assets/video/power_optimization_web_loop.jpg"
+               autoplay muted loop playsinline></video>
+        <span class="tag">Feature spotlight</span>
+      </a>
+      <div>
+        <p class="eyebrow">Power optimization</p>
+        <h2>Less heat where the laser comes back too fast</h2>
+        <p class="lead">On a short hatch vector the laser returns to its last line after a fraction of a millisecond,
+          while the metal is still hot. The power optimization gives every hatch vector its own power, computed from
+          the time until the laser comes back.</p>
+        <ul class="checks">
+          <li>Lower power on short vectors, full power on long ones</li>
+          <li>Optional segment splitting: the power changes along every line</li>
+          <li>Follows each laser's real timeline, also on multi-laser machines</li>
+        </ul>
+        <div class="btn-row">
+          <a class="btn btn-dark" href="features/power_optimization.html">See how it works</a>
+          <a class="btn btn-line" href="features/power_optimization.html#explainer">Try the interactive model</a>
+        </div>
+        <div class="blog-card">
+          <div>
+            <span class="kicker">Blog post · coming soon</span>
+            <b>Power optimization: taming heat build-up on short vectors</b>
+            <small>Working title, link to follow</small>
+          </div>
+          <a class="btn btn-line" href="#" aria-disabled="true">Read the post</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- highlights -->
+  <section class="band">
+    <div class="band-in">
+      <h2>More than contours and hatching</h2>
+      <p class="lead">The strategies production machines need, each with a tutorial you can follow in ATU.</p>
+      <div class="highlights">
+        <a class="tile" href="features/multi_laser.html"><img src="assets/video/multi_laser_parts.jpg" alt="Thirteen parts in four laser colours in the ATU Exposure Preview"><div class="t"><b>Multi-laser load balancing</b><small>The parts of a layer are shared between the lasers so all lasers finish together.</small></div></a>
+        <a class="tile" href="features/build_order.html"><img src="assets/video/build_order.jpg" alt="Island grid coloured by exposure order in the ATU Exposure Preview"><div class="t"><b>Gas flow aware build order</b><small>Models, islands and vector types are exposed downstream first, so spatter lands on exposed areas.</small></div></a>
+        <a class="tile" href="features/export_formats.html"><img src="assets/video/export_formats.jpg" alt="Format list of the ATU Execute dialog with the six export filters"><div class="t"><b>LSR, CLI+ and 3MF toolpath</b><small>Machine-ready packages with parameters, build job image and time estimate.</small></div></a>
+        <a class="tile" href="features/hatch_rotation.html"><img src="assets/video/hatch_rotation.jpg" alt="Volume hatch lines of one layer in the ATU Exposure Preview"><div class="t"><b>Hatch rotation and limitation window</b><small>Turns the hatch from layer to layer and keeps the lines away from the gas flow.</small></div></a>
+        <a class="tile" href="features/downskin.html"><img src="assets/video/downskin.jpg" alt="Downskin shelf in the ATU 3D view"><div class="t"><b>Downskin and upskin</b><small>Dedicated settings for overhangs and top surfaces.</small></div></a>
+        <a class="tile" href="features/laser_timing.html"><img src="assets/video/laser_timing.jpg" alt="Laser timing group of the platform parameters"><div class="t"><b>Laser timing and time estimate</b><small>Scanner delays and jump speeds drive the build time estimate per laser.</small></div></a>
+      </div>
+      <p style="margin-top: 24px"><a class="btn btn-line" href="tutorials.html">All eighteen tutorials</a></p>
+    </div>
+  </section>
+
+  <!-- workflow -->
+  <section class="band alt">
+    <div class="band-in">
+      <h2>From part to machine</h2>
+      <p class="lead">The buildstyle sits between your design and your machine.</p>
+      <ol class="flow">
+        <li><b>Design and prepare</b><span>Model, orient and support the part in Autodesk Fusion.</span></li>
+        <li class="ours"><b>Open LPBF Buildstyle</b><span>Contours, hatching, supports, ordering and laser powers in Advanced Toolpath Utility.</span></li>
+        <li><b>Export</b><span>LSR, CLI+ or 3MF toolpath package for the build job.</span></li>
+        <li><b>Machine control</b><span>Run the job on your machine, for example with the Autodesk Machine Control Framework.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- partners teaser -->
+  <section class="band">
+    <div class="band-in">
+      <h2>Works with the ecosystem</h2>
+      <p class="lead">Open formats and open tools that fit together.</p>
+      <div class="partner-strip">
+        <a class="partner" href="partners.html#amcf">
+          <div class="logo"><img class="partner-logo" src="assets/partners/amcf_logo.png" alt="Autodesk Machine Control Framework logo"></div>
+          <span class="kicker">Works great with</span>
+          <h3>Autodesk Machine Control Framework</h3>
+          <p>An open-source framework for machine control software in additive manufacturing. Take the toolpaths of the
+            buildstyle all the way to the machine.</p>
+          <span class="more">Learn more →</span>
+        </a>
+        <a class="partner" href="partners.html#powderbed">
+          <div class="logo"><img class="partner-logo wordmark" src="assets/partners/powderbed.png" alt="POWDERBED"></div>
+          <span class="kicker">Runs on AMCF</span>
+          <h3>POWDERBED Core 1</h3>
+          <p>A ready-to-run scanner and laser controller for laser powder bed fusion, with the Autodesk Machine Control
+            Framework preinstalled. It reads the 3MF toolpaths the buildstyle exports.</p>
+          <span class="more">Learn more →</span>
+        </a>
+        <a class="partner" href="partners.html#scanlab">
+          <div class="logo"><img class="partner-logo scanlab" src="assets/partners/scanlab_logo.svg" alt="SCANLAB"></div>
+          <span class="kicker">Scan heads and scan control</span>
+          <h3>SCANLAB</h3>
+          <p>Scan heads and RTC scan controllers that steer the laser. Watch SCANLAB and TUM on their work with
+            Autodesk.</p>
+          <span class="more">Watch the video →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- closing call to action -->
+  <section class="band cta-band">
+    <div class="band-in">
+      <div>
+        <h2>Start building in minutes</h2>
+        <p>Get the project, open it in Advanced Toolpath Utility and build your first part.</p>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="features/getting_started.html">Get started</a>
+        <a class="btn btn-ghost" href="tutorials.html">Browse the tutorials</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>Open LPBF Buildstyle for Autodesk Fusion documentation</footer>
+  <script src="assets/js/hero_videos.js?v=20261115a"></script>
+</body>
+</html>

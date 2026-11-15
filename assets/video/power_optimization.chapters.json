@@ -1,0 +1,61 @@
+{
+ "duration": 67.31,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Power wedge: a right triangle, 36 x 18 mm"
+  },
+  {
+   "t": 5.03,
+   "caption": "Layer 50: volume hatch (green)"
+  },
+  {
+   "t": 8.03,
+   "caption": "Color mode 'Laser power': 150 W purple ... 280 W yellow. Every vector has 280 W"
+  },
+  {
+   "t": 17.3,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 22.56,
+   "caption": "Hatching › Volume / hull hatching"
+  },
+  {
+   "t": 23.45,
+   "caption": "Scroll down to its child groups"
+  },
+  {
+   "t": 27.91,
+   "caption": "Power optimization: switch from off to on"
+  },
+  {
+   "t": 34.47,
+   "caption": "Show its parameters"
+  },
+  {
+   "t": 42.14,
+   "caption": "Defaults: 150 W at 0.5 mm vectors, 280 W at 10 mm and longer"
+  },
+  {
+   "t": 47.14,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 48.34,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 49.25,
+   "caption": "Same layer: vectors shorter than 10 mm get less power"
+  },
+  {
+   "t": 53.28,
+   "caption": "At the tip the vectors are shortest: down to 150 W (purple)"
+  },
+  {
+   "t": 61.8,
+   "caption": "Toolpaths in 3D up to layer 50"
+  }
+ ]
+}

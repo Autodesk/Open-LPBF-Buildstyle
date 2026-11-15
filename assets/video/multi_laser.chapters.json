@@ -1,0 +1,49 @@
+{
+ "duration": 53.5,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Laser plate: 40 x 40 mm with a round hole"
+  },
+  {
+   "t": 5.0,
+   "caption": "Laser assignment off: one laser exposes the whole layer"
+  },
+  {
+   "t": 8.0,
+   "caption": "Open Profile › Docs demo (also the platform profile)"
+  },
+  {
+   "t": 13.32,
+   "caption": "Platform Parameter › Scanner array and Laser assignment"
+  },
+  {
+   "t": 23.28,
+   "caption": "2 x 2 scanners, 32 mm scan fields, 24 mm apart: 8 mm overlap in the middle"
+  },
+  {
+   "t": 27.78,
+   "caption": "Enable laser assignment: off → on"
+  },
+  {
+   "t": 33.04,
+   "caption": "Strategy 'Field split': every laser exposes its own scan field"
+  },
+  {
+   "t": 35.25,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 36.45,
+   "caption": "Rebuilt: one colour per laser, the four scan fields share the layer"
+  },
+  {
+   "t": 40.45,
+   "caption": "In the overlap the hatch vectors are cut and shared between neighbouring lasers"
+  },
+  {
+   "t": 47.99,
+   "caption": "Toolpaths in 3D up to layer 25, coloured by laser"
+  }
+ ]
+}

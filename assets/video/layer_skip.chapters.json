@@ -1,0 +1,113 @@
+{
+ "duration": 93.95,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Hull cylinder, 24 mm diameter"
+  },
+  {
+   "t": 5.04,
+   "caption": "Layer 100: first border (red) around the hatch (green)"
+  },
+  {
+   "t": 7.2,
+   "caption": "Zoomed to the right edge, part outline hidden. Layer 100: border"
+  },
+  {
+   "t": 10.9,
+   "caption": "Layer 101: border"
+  },
+  {
+   "t": 14.67,
+   "caption": "Layer 102: border"
+  },
+  {
+   "t": 18.34,
+   "caption": "Layer 103: border. By default every layer gets one"
+  },
+  {
+   "t": 20.94,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 26.15,
+   "caption": "First border (beam compensation)"
+  },
+  {
+   "t": 28.35,
+   "caption": "Its Layer skip group"
+  },
+  {
+   "t": 32.25,
+   "caption": "Expose every n-th layer and Layer offset"
+  },
+  {
+   "t": 36.07,
+   "caption": "Expose every n-th layer: 1 → 2"
+  },
+  {
+   "t": 42.84,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 44.04,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 45.13,
+   "caption": "Layer 100: no border"
+  },
+  {
+   "t": 48.83,
+   "caption": "Layer 101: border"
+  },
+  {
+   "t": 52.53,
+   "caption": "Layer 102: no border"
+  },
+  {
+   "t": 56.36,
+   "caption": "Layer 103: border. Only every second layer is left"
+  },
+  {
+   "t": 58.96,
+   "caption": "Open the profile again"
+  },
+  {
+   "t": 64.36,
+   "caption": "First border › Layer skip"
+  },
+  {
+   "t": 65.05,
+   "caption": "Layer offset: 0 → 1 shifts the pattern by one layer"
+  },
+  {
+   "t": 72.27,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 73.47,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 74.53,
+   "caption": "Layer 100: border"
+  },
+  {
+   "t": 78.43,
+   "caption": "Layer 101: no border"
+  },
+  {
+   "t": 82.13,
+   "caption": "Layer 102: border"
+  },
+  {
+   "t": 85.83,
+   "caption": "Layer 103: no border. Now the other layers get it"
+  },
+  {
+   "t": 88.43,
+   "caption": "Toolpaths in 3D up to layer 100"
+  }
+ ]
+}

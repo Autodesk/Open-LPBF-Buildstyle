@@ -1,0 +1,49 @@
+{
+ "duration": 51.36,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Thirteen parts on a 60 x 60 mm plate"
+  },
+  {
+   "t": 5.01,
+   "caption": "Laser assignment off: one laser exposes all parts"
+  },
+  {
+   "t": 8.01,
+   "caption": "Open Profile › Docs demo (also the platform profile)"
+  },
+  {
+   "t": 13.27,
+   "caption": "Platform Parameter › Scanner array and Laser assignment"
+  },
+  {
+   "t": 20.18,
+   "caption": "2 x 2 scanners with 80 mm scan fields: every laser reaches the whole plate"
+  },
+  {
+   "t": 24.68,
+   "caption": "Enable laser assignment: off → on"
+  },
+  {
+   "t": 29.98,
+   "caption": "Strategy 'Swimlane': every part goes whole to one laser"
+  },
+  {
+   "t": 35.65,
+   "caption": "Swimlane width 60 mm: one lane, so all parts are shared in one go"
+  },
+  {
+   "t": 38.65,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 39.85,
+   "caption": "Rebuilt: the parts are shared out, each laser gets about a quarter of the work"
+  },
+  {
+   "t": 45.86,
+   "caption": "Toolpaths in 3D up to layer 25, coloured by laser"
+  }
+ ]
+}

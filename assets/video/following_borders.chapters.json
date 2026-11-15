@@ -1,0 +1,61 @@
+{
+ "duration": 68.86,
+ "chapters": [
+  {
+   "t": 0.0,
+   "caption": "Contour plate: chamfer, round notch and a 1 mm wide tab"
+  },
+  {
+   "t": 5.01,
+   "caption": "Layer at z 1 mm: only the first border (red) around the hatch"
+  },
+  {
+   "t": 7.55,
+   "caption": "Chamfer: one border, then the hatch starts"
+  },
+  {
+   "t": 13.45,
+   "caption": "The 1 mm tab: one border, hatch in the middle"
+  },
+  {
+   "t": 21.0,
+   "caption": "Open Profile › Docs demo"
+  },
+  {
+   "t": 25.28,
+   "caption": "Following borders: switch from off to on"
+  },
+  {
+   "t": 32.71,
+   "caption": "Number of additional borders: type 3"
+  },
+  {
+   "t": 43.17,
+   "caption": "Each ring is 0.08 mm further inside than the one before"
+  },
+  {
+   "t": 45.27,
+   "caption": "Confirm with OK"
+  },
+  {
+   "t": 46.47,
+   "caption": "Rebuild the exposures"
+  },
+  {
+   "t": 47.35,
+   "caption": "After: three more rings inside the first border"
+  },
+  {
+   "t": 49.88,
+   "caption": "They follow the chamfer at 0.14, 0.22 and 0.30 mm"
+  },
+  {
+   "t": 55.78,
+   "caption": "Tab: the hatch now starts 0.35 mm inside instead of 0.11 mm"
+  },
+  {
+   "t": 63.33,
+   "caption": "Toolpaths in 3D up to the current layer"
+  }
+ ]
+}
