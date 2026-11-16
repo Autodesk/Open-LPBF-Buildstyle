@@ -419,10 +419,16 @@ a.partner:hover { text-decoration: none; border-color: #000; }
 .partner-feature h2 { font-size: 1.7rem; }
 .partner-feature ul { padding-left: 20px; margin: 12px 0 20px; }
 .partner-feature li { margin-bottom: 6px; }
-.chain { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .88rem; }
-.chain span { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 3px 12px; }
-.chain span.ours { background: var(--yellow-200); border-color: #000; font-weight: 600; }
-.chain i { color: var(--muted); font-style: normal; }
+.partner-feature .visual.dark { background: #000; border-color: #000; color: #fff; padding: 32px; }
+.pipeline { list-style: none; margin: 0; padding: 0; width: 100%; }
+.pipeline li { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 20px; align-items: center; padding: 12px 0; }
+.pipeline li:not(:last-child)::after { content: ""; position: absolute; left: 27px; top: 76px; bottom: -4px; width: 2px; background: #666666; }
+.pipeline img { display: block; width: 56px; height: 56px; }
+.pipeline b { display: block; font-family: var(--heading); font-size: 1.15rem; }
+.pipeline small { display: block; margin-top: 2px; color: #a3a3a3; font-size: .9rem; }
+.pipeline li.ours { margin: 8px -16px; padding: 12px 16px; background: var(--yellow); color: #000; border-radius: 6px; }
+.pipeline li.ours::after { left: 43px; top: 100%; bottom: auto; height: 16px; }
+.pipeline .ours small { color: #000; }
 
 .cta-band { background: #000; color: #fff; }
 .cta-band .band-in { display: flex; flex-wrap: wrap; gap: 20px 40px; align-items: center; justify-content: space-between; }

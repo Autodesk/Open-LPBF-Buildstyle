@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ecosystem · Open LPBF Buildstyle for Autodesk Fusion</title>
-  <link rel="stylesheet" href="assets/css/site.css?v=20261116c">
+  <link rel="stylesheet" href="assets/css/site.css?v=20261116d">
 </head>
 <body>
   <header class="top">
@@ -37,12 +37,14 @@
 
       <!-- Autodesk Machine Control Framework -->
       <div class="partner-feature" id="amcf">
-        <div class="visual">
-          <img class="partner-logo" src="assets/partners/amcf_logo.png" alt="Autodesk Machine Control Framework logo">
-          <div class="chain" aria-label="Data flow">
-            <span>Autodesk Fusion</span><i>→</i><span class="ours">Open LPBF Buildstyle</span><i>→</i>
-            <span>3MF toolpath</span><i>→</i><span>Machine Control Framework</span><i>→</i><span>Machine</span>
-          </div>
+        <div class="visual dark">
+          <ol class="pipeline" aria-label="Data flow from Autodesk Fusion to the machine">
+            <li><img src="assets/icons/3d-model-white.png" alt=""><span><b>Autodesk Fusion</b><small>Design, orient and support the part</small></span></li>
+            <li class="ours"><img src="assets/icons/3d-settings-black.png" alt=""><span><b>Open LPBF Buildstyle</b><small>Contours, hatching and laser powers</small></span></li>
+            <li><img src="assets/icons/monitor-cam-white.png" alt=""><span><b>3MF toolpath</b><small>Open format, layer by layer</small></span></li>
+            <li><img src="assets/icons/server-white.png" alt=""><span><b>Machine Control Framework</b><small>Open-source machine software</small></span></li>
+            <li><img src="assets/icons/laser-cutting-white.png" alt=""><span><b>Machine</b><small>Scanner and laser expose the layer</small></span></li>
+          </ol>
         </div>
         <div>
           <p class="eyebrow">Open-source machine control</p>
