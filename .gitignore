@@ -1,0 +1,18 @@
+# ATU session files, written when the project is opened in ATU.
+# They hold local state (open tabs, parts, slice results, logs) and
+# must not be committed.
+
+# Editor state and build style session settings
+*.fsp.user
+*.fpbs
+*_fpbs.user
+
+# Build style log widget export
+*_bs_log_widget.csv
+
+# Build parameter profiles exported by ATU
+/Profiles/
+
+# Project data folder (named after ProjectUUID in OSS_MPBF_01.fsp):
+# imported parts (.model), slice results (.fsr), profiler data
+/5b0c7e2a-3f41-4c8e-9d17-6a2e8f3b9c45/
