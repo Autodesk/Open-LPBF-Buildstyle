@@ -1,5 +1,5 @@
-// Tab switcher for the videos in the overview hero. A hidden video is stopped: the local one is paused,
-// the Wistia iframe is reloaded (it cannot be paused from here without the Wistia player API).
+// Tab switcher for the videos in the overview hero. A hidden video is stopped: a local one is paused,
+// a Wistia iframe is reloaded (it cannot be paused from here without the Wistia player API).
 (function () {
   const tabs = Array.from(document.querySelectorAll(".hv-tabs [role=tab]"));
 

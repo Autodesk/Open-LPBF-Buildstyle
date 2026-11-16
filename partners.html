@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ecosystem · Open LPBF Buildstyle for Autodesk Fusion</title>
-  <link rel="stylesheet" href="assets/css/site.css?v=20261116a">
+  <link rel="stylesheet" href="assets/css/site.css?v=20261116c">
 </head>
 <body>
   <header class="top">
@@ -21,16 +21,20 @@
   <section class="m-hero">
     <div class="m-hero-in" style="grid-template-columns: minmax(0, 1fr)">
       <div>
-        <p class="eyebrow">Partners and ecosystem</p>
+        <p class="eyebrow">Ecosystem</p>
         <h1>Better together</h1>
-        <p class="sub" style="max-width: 760px">The buildstyle writes open formats and is open source itself. These
-          partners take it the rest of the way: from the toolpath to the scanner and laser on the machine.</p>
+        <p class="sub" style="max-width: 760px">The buildstyle writes open formats and is open source itself. Open
+          machine control takes it the rest of the way to the scanner and laser, and machine makers, part makers and
+          researchers build with it every day.</p>
       </div>
     </div>
   </section>
 
-  <section class="band">
+  <section class="band" id="works-with">
     <div class="band-in">
+      <h2>Works great with</h2>
+      <p class="lead">Open machine control that takes the toolpaths of the buildstyle to the scanner and laser.</p>
+
       <!-- Autodesk Machine Control Framework -->
       <div class="partner-feature" id="amcf">
         <div class="visual">
@@ -41,7 +45,7 @@
           </div>
         </div>
         <div>
-          <p class="eyebrow">Works great with</p>
+          <p class="eyebrow">Open-source machine control</p>
           <h2>Autodesk Machine Control Framework</h2>
           <p>The Autodesk Machine Control Framework (AMCF) is an open-source framework for building the control software
             of additive manufacturing machines. Together with the buildstyle it closes the loop from the part in Fusion to
@@ -82,6 +86,84 @@
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="stories">
+    <div class="band-in">
+      <h2>Built with the Open LPBF Buildstyle</h2>
+      <p class="lead">Machine makers, part makers and researchers on what they do with the buildstyle, in their own words.</p>
+
+      <!-- Aconity3D -->
+      <div class="partner-feature video-first" id="aconity">
+        <div class="visual">
+          <img class="partner-logo aconity" src="assets/partners/aconity3d_logo.png" alt="Aconity3D">
+          <video class="product-shot" controls preload="none" poster="assets/video/aconity.jpg" width="1920" height="1080">
+            <source src="assets/video/aconity.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div>
+          <p class="eyebrow">Open machines</p>
+          <h2>Aconity3D</h2>
+          <p>Aconity3D builds laser powder bed fusion machines that are extremely open. They have used the buildstyle for
+            years and shared it with their community.</p>
+          <ul>
+            <li>In the video: Yves-Christian Hagedorn, Martin Buscher and Tobias Klimkait (Aconity3D), Alexander Oster
+              (Autodesk)</li>
+          </ul>
+          <div class="btn-row">
+            <a class="btn btn-dark" href="https://aconity3d.com/">Visit aconity3d.com</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apex -->
+      <div class="partner-feature video-first" id="apex">
+        <div class="visual">
+          <img class="partner-logo apex" src="assets/partners/apex_logo.svg" alt="APEX">
+          <iframe class="product-shot wistia" src="https://fast.wistia.net/embed/iframe/r4ercr6rym" title="Apex Additive Technologies video"
+                  allow="autoplay; fullscreen" allowfullscreen frameborder="0" scrolling="no"
+                  width="960" height="540"></iframe>
+        </div>
+        <div>
+          <p class="eyebrow">A printed mechanical watch</p>
+          <h2>Apex Additive Technologies</h2>
+          <p>Apex Additive Technologies is building an additively manufactured mechanical watch. Autodesk partners with
+            Apex, and the power optimization of the buildstyle improves these challenging parts.</p>
+          <ul>
+            <li>Power optimization: less laser power on short hatch vectors, full power on long ones</li>
+            <li>In the video: Jono Munday (Apex Technologies), Lukas Fuhrmann (Autodesk)</li>
+          </ul>
+          <div class="btn-row">
+            <a class="btn btn-dark" href="https://www.apex.tech/">Visit apex.tech</a>
+            <a class="btn btn-line" href="features/power_optimization.html">How the power optimization works</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visiotech -->
+      <div class="partner-feature video-first" id="visiotech">
+        <div class="visual">
+          <img class="partner-logo visiotech" src="assets/partners/visiotech_logo.png" alt="VISIOTECH">
+          <iframe class="product-shot wistia" src="https://fast.wistia.net/embed/iframe/bh2d7r6a0v" title="Visiotech video"
+                  allow="autoplay; fullscreen" allowfullscreen frameborder="0" scrolling="no"
+                  width="960" height="540"></iframe>
+        </div>
+        <div>
+          <p class="eyebrow">Beyond metal: selective laser sintering</p>
+          <h2>Visiotech</h2>
+          <p>Visiotech is a service bureau specialised in selective laser sintering (SLS). Where the other companies on
+            this page use the buildstyle for metal powder bed fusion, Visiotech took the open code and fine-tuned it for
+            SLS. In the video, CEO Stephan Sterzl talks about that work with Autodesk.</p>
+          <ul>
+            <li>One open buildstyle, a different process: adapted from metal to SLS</li>
+            <li>In the video: Stephan Sterzl (Visiotech), Alexander Oster (Autodesk)</li>
+          </ul>
+          <div class="btn-row">
+            <a class="btn btn-dark" href="https://www.visiotech-gmbh.de/">Visit visiotech-gmbh.de</a>
+          </div>
+        </div>
+      </div>
 
       <!-- SCANLAB -->
       <div class="partner-feature video-first" id="scanlab">
@@ -107,34 +189,10 @@
           </div>
         </div>
       </div>
-
-      <!-- Visiotech -->
-      <div class="partner-feature video-first" id="visiotech">
-        <div class="visual">
-          <img class="partner-logo visiotech" src="assets/partners/visiotech_logo.png" alt="VISIOTECH">
-          <video class="product-shot" controls preload="none" poster="assets/video/visiotech.jpg" width="1920" height="1080">
-            <source src="assets/video/visiotech.mp4" type="video/mp4">
-          </video>
-        </div>
-        <div>
-          <p class="eyebrow">Beyond metal: selective laser sintering</p>
-          <h2>Visiotech</h2>
-          <p>Visiotech is a service bureau specialised in selective laser sintering (SLS). Where the other companies on
-            this page use the buildstyle for metal powder bed fusion, Visiotech took the open code and fine-tuned it for
-            SLS. In the video, CEO Stephan Sterzl talks about that work with Autodesk.</p>
-          <ul>
-            <li>One open buildstyle, a different process: adapted from metal to SLS</li>
-            <li>In the video: Stephan Sterzl (Visiotech), Alexander Oster and Lukas Fuhrmann (Autodesk)</li>
-          </ul>
-          <div class="btn-row">
-            <a class="btn btn-dark" href="https://www.visiotech-gmbh.de/">Visit visiotech-gmbh.de</a>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 
-  <section class="band alt">
+  <section class="band">
     <div class="band-in">
       <h2>Highlighted features</h2>
       <p class="lead">Strategies that make the difference on the machine.</p>
