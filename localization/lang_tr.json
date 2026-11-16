@@ -14,6 +14,7 @@
   "filter_cli_layers": "CLI+ takım yolu (ZIP, katman başına bir dosya)",
   "filter_3mf_ramps": "Güç rampalı 3MF takım yolu",
   "filter_3mf_edges": "Kenar başına güçlü 3MF takım yolu",
+  "filter_3mf_sub": "Güç destek noktalı 3MF takım yolu",
 
   "grp_hull_core": "Kabuk ve çekirdek",
   "grp_hull_core_descr": "Parça hacmini bir dış kabuğa ve kendi taramasına sahip bir iç çekirdeğe böler. Çekirdek yalnızca her n. katmanda pozlanabilir.",

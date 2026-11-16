@@ -88,26 +88,31 @@ var S_filter_cli_single = 'OSS-MPBF-01-CLIPLUS-ZIP-SINGLE-8E2F4A10-5C1B-4D7E-9A6
 var S_filter_cli_layers = 'OSS-MPBF-01-CLIPLUS-ZIP-LAYERS-8E2F4A10-5C1B-4D7E-9A63-1F0B2C3D4E04';
 var S_filter_3mf_ramps = 'OSS-MPBF-01-3MF-TP-RAMPS-8E2F4A10-5C1B-4D7E-9A63-1F0B2C3D4E05';
 var S_filter_3mf_edges = 'OSS-MPBF-01-3MF-TP-EDGES-8E2F4A10-5C1B-4D7E-9A63-1F0B2C3D4E06';
+var S_filter_3mf_sub = 'OSS-MPBF-01-3MF-TP-SUB-8E2F4A10-5C1B-4D7E-9A63-1F0B2C3D4E07';
 
 /**
  * Filter table: id, localization key of the name, file extension,
  * format and options.
  * per_layer: true = one file per layer inside the ZIP (handy for
  *   machines or tools that load the job layer by layer).
- * with_ramps: 3MF only. true = the power of a hatch line may change
- *   linearly from its start to its end (f1 / f2 between touching micro
- *   vectors); false = one constant power per line ("edges"). Polylines
- *   and loops always get one power per line. This only matters with
- *   power optimization.
+ * power_mode: 3MF only (ignored by LSR and CLI+), how a changing power
+ *   along a hatch line is written (see S_POWER_MODES in tp3mf_writer.js):
+ *   'ramps' = the power of a hatch line may change linearly from its
+ *   start to its end (f1 / f2 between touching micro vectors);
+ *   'edges' = one constant power per line; 'sub' = every chain of
+ *   touching micro vectors is one line with support points (smaller
+ *   file). Polylines and loops always get one power per line. This only
+ *   matters with power optimization.
  * The order of the entries is the order in the export dialog.
  */
 var S_FILTERS = Object.freeze([
-  { id: S_filter_lsr_single, name_key: 'filter_lsr_single', ext: 'zip', format: 'lsr', per_layer: false, with_ramps: false },
-  { id: S_filter_lsr_layers, name_key: 'filter_lsr_layers', ext: 'zip', format: 'lsr', per_layer: true, with_ramps: false },
-  { id: S_filter_cli_single, name_key: 'filter_cli_single', ext: 'zip', format: 'cli', per_layer: false, with_ramps: false },
-  { id: S_filter_cli_layers, name_key: 'filter_cli_layers', ext: 'zip', format: 'cli', per_layer: true, with_ramps: false },
-  { id: S_filter_3mf_ramps, name_key: 'filter_3mf_ramps', ext: '3mf', format: '3mf', per_layer: false, with_ramps: true },
-  { id: S_filter_3mf_edges, name_key: 'filter_3mf_edges', ext: '3mf', format: '3mf', per_layer: false, with_ramps: false }
+  { id: S_filter_lsr_single, name_key: 'filter_lsr_single', ext: 'zip', format: 'lsr', per_layer: false, power_mode: 'edges' },
+  { id: S_filter_lsr_layers, name_key: 'filter_lsr_layers', ext: 'zip', format: 'lsr', per_layer: true, power_mode: 'edges' },
+  { id: S_filter_cli_single, name_key: 'filter_cli_single', ext: 'zip', format: 'cli', per_layer: false, power_mode: 'edges' },
+  { id: S_filter_cli_layers, name_key: 'filter_cli_layers', ext: 'zip', format: 'cli', per_layer: true, power_mode: 'edges' },
+  { id: S_filter_3mf_ramps, name_key: 'filter_3mf_ramps', ext: '3mf', format: '3mf', per_layer: false, power_mode: 'ramps' },
+  { id: S_filter_3mf_edges, name_key: 'filter_3mf_edges', ext: '3mf', format: '3mf', per_layer: false, power_mode: 'edges' },
+  { id: S_filter_3mf_sub, name_key: 'filter_3mf_sub', ext: '3mf', format: '3mf', per_layer: false, power_mode: 'sub' }
 ]);
 
 // -----------------------------------------------------------
@@ -634,7 +639,7 @@ exports.export_to_file = function(a_file, a_filter_id, a_model_data, a_progress)
     // (the image is referenced as thumbnail), so they are built here.
     // The ZIP formats add them at the end (finish_zip).
     l_ctx.attachments = build_attachments(l_ctx);
-    return TP3MF.export_3mf(l_ctx, a_file, l_filter.with_ramps);
+    return TP3MF.export_3mf(l_ctx, a_file, l_filter.power_mode);
   }
   // Only reached if S_FILTERS contains a format without a branch above.
   return { ok: false, message: 'Unsupported export filter ' + a_filter_id };

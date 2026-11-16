@@ -15,7 +15,7 @@ A build style decides how the laser melts each layer of a part: which paths it s
 - **Exposure order**: configurable order of vector types, sorting along the shielding gas flow, platform, model, island or global build order.
 - **Multi-laser machines**: scanner array with overlapping scan fields and laser assignment (load balancing) with field split and swimlane strategies.
 - **Power optimization** and **exposure time estimation** with scanner delays.
-- **Export**: LSR, CLI+ (single file or one file per layer, in a ZIP) and 3MF toolpath packages (with power ramps or with power per edge).
+- **Export**: LSR, CLI+ (single file or one file per layer, in a ZIP) and 3MF toolpath packages (with power ramps, power per edge or power support points).
 - **Localized user interface** in 12 languages.
 
 ## Requirements

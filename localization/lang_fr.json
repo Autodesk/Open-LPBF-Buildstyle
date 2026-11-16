@@ -14,6 +14,7 @@
   "filter_cli_layers": "Trajectoire CLI+ (ZIP, un fichier par couche)",
   "filter_3mf_ramps": "Trajectoire 3MF avec rampes de puissance",
   "filter_3mf_edges": "Trajectoire 3MF avec puissance par arête",
+  "filter_3mf_sub": "Trajectoire 3MF avec points d'appui de puissance",
 
   "grp_hull_core": "Enveloppe et noyau",
   "grp_hull_core_descr": "Divise le volume de la pièce en une enveloppe extérieure et un noyau intérieur avec ses propres hachures. Le noyau peut n'être exposé que toutes les n couches.",

@@ -14,6 +14,7 @@
   "filter_cli_layers": "Percorso CLI+ (ZIP, un file per strato)",
   "filter_3mf_ramps": "Percorso 3MF con rampe di potenza",
   "filter_3mf_edges": "Percorso 3MF con potenza per spigolo",
+  "filter_3mf_sub": "Percorso 3MF con punti di appoggio della potenza",
 
   "grp_hull_core": "Guscio e nucleo",
   "grp_hull_core_descr": "Suddivide il volume del pezzo in un guscio esterno e un nucleo interno con un proprio tratteggio. Il nucleo può essere esposto solo ogni n strati.",

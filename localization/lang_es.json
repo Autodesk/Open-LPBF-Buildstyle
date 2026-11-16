@@ -14,6 +14,7 @@
   "filter_cli_layers": "Trayectoria CLI+ (ZIP, un archivo por capa)",
   "filter_3mf_ramps": "Trayectoria 3MF con rampas de potencia",
   "filter_3mf_edges": "Trayectoria 3MF con potencia por arista",
+  "filter_3mf_sub": "Trayectoria 3MF con puntos de apoyo de potencia",
 
   "grp_hull_core": "Envoltura y núcleo",
   "grp_hull_core_descr": "Divide el volumen de la pieza en una envoltura exterior y un núcleo interior con su propio sombreado. El núcleo puede exponerse solo cada n-ésima capa.",

@@ -14,6 +14,7 @@
   "filter_cli_layers": "CLI+ toolpath (ZIP, one file per layer)",
   "filter_3mf_ramps": "3MF toolpath with power ramps",
   "filter_3mf_edges": "3MF toolpath with power per edge",
+  "filter_3mf_sub": "3MF toolpath with power support points",
 
   "grp_hull_core": "Hull and core",
   "grp_hull_core_descr": "Splits the part volume into an outer hull and an inner core with its own hatching. The core can be exposed only every n-th layer.",

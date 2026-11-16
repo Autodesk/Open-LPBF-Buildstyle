@@ -14,6 +14,7 @@
   "filter_cli_layers": "CLI+-Toolpath (ZIP, eine Datei pro Schicht)",
   "filter_3mf_ramps": "3MF-Toolpath mit Leistungsrampen",
   "filter_3mf_edges": "3MF-Toolpath mit Leistung pro Kante",
+  "filter_3mf_sub": "3MF-Toolpath mit Leistungsstützpunkten",
 
   "grp_hull_core": "Hülle-Kern",
   "grp_hull_core_descr": "Teilt das Bauteilvolumen in eine äußere Hülle und einen inneren Kern mit eigenem Hatching. Der Kern kann nur jede n-te Schicht belichtet werden.",

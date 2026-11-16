@@ -14,6 +14,7 @@
   "filter_cli_layers": "CLI+ 刀具路径（ZIP，每层一个文件）",
   "filter_3mf_ramps": "带功率斜坡的 3MF 刀具路径",
   "filter_3mf_edges": "按边设置功率的 3MF 刀具路径",
+  "filter_3mf_sub": "带功率支撑点的 3MF 刀具路径",
 
   "grp_hull_core": "外壳和芯部",
   "grp_hull_core_descr": "将零件体积分为外部外壳和具有独立填充的内部芯部。芯部可以仅每隔 n 层曝光一次。",

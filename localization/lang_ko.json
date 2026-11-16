@@ -14,6 +14,7 @@
   "filter_cli_layers": "CLI+ 도구 경로(ZIP, 레이어당 파일 1개)",
   "filter_3mf_ramps": "출력 램프가 있는 3MF 도구 경로",
   "filter_3mf_edges": "모서리별 출력이 있는 3MF 도구 경로",
+  "filter_3mf_sub": "출력 지지점이 있는 3MF 도구 경로",
 
   "grp_hull_core": "쉘 및 코어",
   "grp_hull_core_descr": "부품 볼륨을 외부 쉘과 자체 해치를 갖는 내부 코어로 나눕니다. 코어는 n번째 레이어마다만 노광할 수 있습니다.",

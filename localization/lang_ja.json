@@ -14,6 +14,7 @@
   "filter_cli_layers": "CLI+ ツールパス (ZIP、レイヤごとに 1 ファイル)",
   "filter_3mf_ramps": "出力ランプ付き 3MF ツールパス",
   "filter_3mf_edges": "エッジごとの出力付き 3MF ツールパス",
+  "filter_3mf_sub": "出力サポート ポイント付き 3MF ツールパス",
 
   "grp_hull_core": "ハルとコア",
   "grp_hull_core_descr": "部品の体積を外側のハルと、独自のハッチングを持つ内側のコアに分割します。コアは n レイヤごとにのみ露光できます。",

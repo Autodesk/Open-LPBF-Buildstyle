@@ -14,6 +14,7 @@
   "filter_cli_layers": "Trajetória CLI+ (ZIP, um arquivo por camada)",
   "filter_3mf_ramps": "Trajetória 3MF com rampas de potência",
   "filter_3mf_edges": "Trajetória 3MF com potência por aresta",
+  "filter_3mf_sub": "Trajetória 3MF com pontos de apoio de potência",
 
   "grp_hull_core": "Casca e núcleo",
   "grp_hull_core_descr": "Divide o volume da peça em uma casca externa e um núcleo interno com hachura própria. O núcleo pode ser exposto apenas a cada n camadas.",

@@ -14,6 +14,7 @@
   "filter_cli_layers": "Ścieżka CLI+ (ZIP, jeden plik na warstwę)",
   "filter_3mf_ramps": "Ścieżka 3MF z rampami mocy",
   "filter_3mf_edges": "Ścieżka 3MF z mocą dla każdej krawędzi",
+  "filter_3mf_sub": "Ścieżka 3MF z punktami podparcia mocy",
 
   "grp_hull_core": "Powłoka i rdzeń",
   "grp_hull_core_descr": "Dzieli objętość części na zewnętrzną powłokę i wewnętrzny rdzeń z własnym kreskowaniem. Rdzeń może być naświetlany tylko co n-tą warstwę.",
