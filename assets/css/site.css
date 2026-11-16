@@ -392,6 +392,8 @@ a.partner:hover { text-decoration: none; border-color: #000; }
 .partner-feature .partner-logo.wordmark { height: 40px; }
 .partner-logo.scanlab { height: 46px; }
 .partner-feature .partner-logo.scanlab { height: 60px; }
+.partner-logo.visiotech { height: 20px; max-width: 100%; }
+.partner-feature .partner-logo.visiotech { height: 30px; }
 .product-shot { display: block; width: 100%; height: auto; }
 .partner .kicker { font-size: .72rem; margin: 0 0 4px; }
 .partner h3 { margin: 4px 0 8px; font-size: 1.25rem; }
