@@ -15,7 +15,7 @@ Current rules:
 
 | File | Covers |
 |------|--------|
-| `javascript-style.md` | Naming prefixes (`a_`, `l_`, `r_`, `S_`), brace style, `'use strict'`, strict equality |
+| `javascript-style.md` | Naming prefixes (`a_`, `l_`, `r_`, `S_`), Allman braces and single-line statements, `'use strict'`, strict equality |
 | `module-headers-and-comments.md` | Mandatory module header sections, JSDoc, English-only explanatory comments |
 | `error-handling.md` | `{ ok, message }` result objects; only `main/main.js` throws to the host |
 | `lib-is-project-independent.md` | `lib/` never requires `main/`; settings come in as plain objects |

@@ -30,7 +30,15 @@ Match the style of the surrounding code. The rules below describe what the exist
 - Start every module with `'use strict';` right after the header comment.
 - Allman braces: the opening brace goes on its own line for functions, `if`, `else`, `for` and `while`.
 - Indent with 2 spaces. No tabs.
-- Always use braces, even for single-line blocks.
+- A block with exactly one simple statement may stay on the same line as its `if` or `for`, without braces. Simple means `return`, `continue`, `break`, one assignment or one function call:
+  ```js
+  if (a_hatch.isEmpty()) return;
+  if (l_n === l_last) continue;
+  for (let i = 0; i < l_count; ++i) r_ranks.push(i);
+  ```
+- An `if` / `else` pair may use the same single-line form if every branch is one simple statement. Otherwise every branch gets braces.
+- Everything else gets Allman braces, including a block with two or more statements.
+- Exception: two or three short assignments may share one line in braces in two cases. One is a table of parallel cases, such as the aligned `if` / `else` chain in `generate_laser_color` (`lib/multi_laser/scanner_array.js`). The other is a "keep the best so far" update, such as `if (l_key < l_best_key) { l_best_key = l_key; l_best = i; }`. Do not use this form for other control flow, and never with `break`, `continue` or `return` inside.
 - Use `let` for local variables. Use `var` for module-level aliases and `S_` state, as the existing code does.
 - Always use `===` and `!==`.
 - Export with `exports.name = function(a_arg) { ... };`. Do not use `module.exports = ...` or ES module `export`.
