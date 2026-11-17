@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Open LPBF Buildstyle for Autodesk Fusion</title>
   <meta name="description" content="An open-source laser powder bed fusion build style for Autodesk Fusion: every exposure strategy in readable JavaScript, explained feature by feature.">
-  <link rel="stylesheet" href="assets/css/site.css?v=20261117a">
+  <link rel="stylesheet" href="assets/css/site.css?v=20261117b">
 </head>
 <body>
   <header class="top">
@@ -114,22 +114,32 @@
           <a class="btn btn-line" href="features/power_optimization.html#explainer">Try the interactive model</a>
         </div>
       </div>
-      <div class="spot-card deep-dive">
-        <span class="kicker">Deep dive · video · 3 min</span>
-        <b>How the power optimization works</b>
-        <iframe class="wistia" src="https://fast.wistia.net/embed/iframe/u8hrfo7x4b" title="Power optimization deep dive video"
-                allow="autoplay; fullscreen" allowfullscreen frameborder="0" scrolling="no"
-                width="960" height="540"></iframe>
+    </div>
+
+    <!-- spotlight: volumetric optimization, mirrored -->
+    <div class="band-in spotlight flip" id="volumetric">
+      <div class="spot-head">
+        <p class="eyebrow">Volumetric optimization</p>
+        <h2>Laser power that knows what lies below the layer</h2>
       </div>
-      <div class="spot-card blog-card">
-        <span class="kicker">Blog post · 11 min read</span>
-        <b>Laser power optimisation: tackling thermal gradients in metal LPBF</b>
-        <a class="thumb" href="blog/power-optimization.html" tabindex="-1" aria-hidden="true">
-          <img src="assets/blog/power-optimization/hero.jpg" alt="" loading="lazy">
-        </a>
+      <a class="shot natural" href="blog/power-optimization.html#voxel-based-downskin"
+         aria-label="Voxel model coloured by distance to the closest downskin surface, and the resulting power-optimised toolpath">
+        <img src="assets/blog/power-optimization/fig09_voxel_downskin.jpg" width="1430" height="691" alt="" loading="lazy">
+        <span class="tag">In preview</span>
+      </a>
+      <div class="spot-text">
+        <p class="lead">Close to a downskin surface there is less solid metal below the layer to carry the heat away. The
+          voxel-based optimization turns the part into voxels, measures how far every voxel is from the closest downskin
+          surface and lowers the laser power where the heat cannot escape.</p>
+        <ul class="checks">
+          <li>A depth value for every voxel instead of one downskin area per layer</li>
+          <li>Continuous power along the vectors or automatic discrete zones</li>
+          <li>Works on top of the 2D power optimization</li>
+        </ul>
         <div class="btn-row">
-          <a class="btn btn-line" href="blog/power-optimization.html">Read the post</a>
+          <a class="btn btn-dark" href="blog/power-optimization.html#voxel-based-downskin">Read the blog post</a>
         </div>
+        <p class="spot-note">In preview, not yet part of the Open LPBF Buildstyle.</p>
       </div>
     </div>
   </section>

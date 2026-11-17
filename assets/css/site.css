@@ -352,26 +352,25 @@ footer { margin: 0; padding: 18px 28px; background: #000; color: #bdbdbd; font-s
 .prop h3 { margin: 0 0 6px; font-size: 1.1rem; }
 .prop p { margin: 0; color: #3c3c3c; font-size: .95rem; }
 
-/* spotlight: heading across the top, then two equal columns (loop video | text, deep-dive video | blog post),
-   so every row shares the same edges and gutter */
+/* spotlight: heading across the top, then two equal columns (image | text); .flip mirrors the columns */
 .spotlight { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px 40px; align-items: start; }
+.spotlight + .spotlight { margin-top: 64px; padding-top: 64px; border-top: 1px solid var(--line); }
+.spotlight.flip .shot { grid-column: 2; grid-row: 2; }
+.spotlight.flip .spot-text { grid-column: 1; grid-row: 2; }
+.spot-note { margin: 16px 0 0; font-size: .85rem; color: var(--muted); }
 .spot-head { grid-column: 1 / -1; }
 .spot-head h2 { margin: 0; }
 .spot-text .lead { margin: 0; }
 .spotlight .shot { display: block; position: relative; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow); }
 .spotlight .shot img, .spotlight .shot video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+.spotlight .shot.natural img { aspect-ratio: auto; height: auto; background: #fff; }
 .spotlight .shot .tag { position: absolute; right: 14px; top: 14px; background: rgba(0, 0, 0, .85); color: var(--yellow); font-weight: 700;
   font-size: .78rem; letter-spacing: .5px; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; }
 .spotlight ul.checks { list-style: none; padding: 0; margin: 20px 0 24px; display: grid; gap: 12px; }
 .spotlight ul.checks li { position: relative; padding-left: 28px; color: #2b2b2b; }
 .spotlight ul.checks li::before { content: ""; position: absolute; left: 0; top: .3em; width: 16px; height: 16px; border-radius: 50%;
   background: var(--yellow) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center / 12px no-repeat; }
-/* the two cards in the bottom row stretch to the same height; the 16:9 video sets it, the blog placeholder fills it */
-.spot-card { display: flex; flex-direction: column; align-self: stretch; padding: 16px 20px 20px; background: var(--panel);
-  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
-.spot-card .kicker { font-size: .72rem; margin: 0 0 4px; color: var(--muted); }
-.spot-card b { display: block; font-size: 1rem; margin-bottom: 12px; }
 .flow { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; counter-reset: f; }
 .flow li { counter-increment: f; position: relative; padding: 0 22px 0 0; }
 .flow li::before { content: counter(f); display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
@@ -479,9 +478,6 @@ a.partner:hover { text-decoration: none; border-color: #000; }
 .post-share span { font-weight: 700; }
 .post-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .post-tags span { padding: 4px 12px; border: 1px solid var(--line); border-radius: 16px; font-size: .82rem; color: #3c3c3c; }
-.blog-card .thumb { display: block; flex: 1; min-height: 160px; border-radius: var(--radius); overflow: hidden; }
-.blog-card .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.blog-card .btn-row { margin-top: 12px; }
 @media (max-width: 700px) {
   .post { padding: 32px 14px 48px; }
   .post-head h1 { font-size: 2rem; }
@@ -494,6 +490,7 @@ a.partner:hover { text-decoration: none; border-color: #000; }
 
 @media (max-width: 900px) {
   .m-hero-in, .spotlight, .partner-feature, .partner-feature.video-first { grid-template-columns: minmax(0, 1fr); }
+  .spotlight.flip .shot, .spotlight.flip .spot-text { grid-column: auto; grid-row: auto; }
   .flow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 0; }
   .flow li:nth-child(2)::after { display: none; }
 }
