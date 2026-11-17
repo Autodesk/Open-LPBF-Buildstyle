@@ -4,6 +4,8 @@ An open source build style for laser powder bed fusion (LPBF), also called metal
 
 A build style decides how the laser melts each layer of a part: which paths it scans, in which order, with which laser and with which parameters. This project gives you a complete, documented build style that you can use as it is, study to learn how LPBF toolpaths are made, or adapt to your own machine and material.
 
+**Documentation website: [autodesk.github.io/Open-LPBF-Buildstyle](https://autodesk.github.io/Open-LPBF-Buildstyle/)**: tutorials for every feature, with videos in ATU, interactive models and code walkthroughs.
+
 ## Features
 
 - **Contours**: first border with beam compensation, following borders, fill contours, contour direction and start point control, line stipple.
